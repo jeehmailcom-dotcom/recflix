@@ -17,7 +17,7 @@ export function cn(...inputs: ClassValue[]): string {
  */
 export function getImageUrl(
   path: string | null | undefined,
-  size: "w185" | "w200" | "w300" | "w342" | "w500" | "w780" | "original" = "w500"
+  size: "w92" | "w154" | "w185" | "w200" | "w300" | "w342" | "w500" | "w780" | "original" = "w500"
 ): string {
   if (!path) {
     return "/images/no-poster.png";
