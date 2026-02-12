@@ -12,12 +12,12 @@ export function cn(...inputs: ClassValue[]): string {
 /**
  * TMDB 이미지 URL 생성
  * @param path - TMDB 이미지 경로 (poster_path, backdrop_path 등)
- * @param size - 이미지 크기 (w200, w300, w342, w500, w780, original)
+ * @param size - 이미지 크기 (w185, w200, w300, w342, w500, w780, original)
  * @returns 완성된 TMDB 이미지 URL 또는 대체 이미지 경로
  */
 export function getImageUrl(
   path: string | null | undefined,
-  size: "w200" | "w300" | "w342" | "w500" | "w780" | "original" = "w500"
+  size: "w185" | "w200" | "w300" | "w342" | "w500" | "w780" | "original" = "w500"
 ): string {
   if (!path) {
     return "/images/no-poster.png";
