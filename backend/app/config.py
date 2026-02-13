@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = "postgresql://recflix:recflix123@localhost:5432/recflix"
+    DATABASE_URL: Optional[str] = None
 
     # Redis - supports both REDIS_URL (Railway) and individual settings
     REDIS_URL: Optional[str] = None
@@ -65,6 +65,9 @@ class Settings(BaseSettings):
         # Set DEBUG based on environment
         if self.APP_ENV == "production":
             self.DEBUG = False
+
+        if not self.DATABASE_URL:
+            raise ValueError("DATABASE_URL environment variable is required")
 
     @property
     def redis_connection_url(self) -> str:
