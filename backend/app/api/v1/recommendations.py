@@ -364,8 +364,8 @@ def calculate_hybrid_scores(
 
 @router.get("", response_model=HomeRecommendations)
 def get_home_recommendations(
-    weather: Optional[str] = Query(None, regex="^(sunny|rainy|cloudy|snowy)$"),
-    mood: Optional[str] = Query(None, regex="^(relaxed|tense|excited|emotional|imaginative|light)$"),
+    weather: Optional[str] = Query(None, pattern="^(sunny|rainy|cloudy|snowy)$"),
+    mood: Optional[str] = Query(None, pattern="^(relaxed|tense|excited|emotional|imaginative|light)$"),
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
@@ -541,7 +541,7 @@ def get_home_recommendations(
 
 @router.get("/hybrid", response_model=List[HybridMovieItem])
 def get_hybrid_recommendations(
-    weather: Optional[str] = Query(None, regex="^(sunny|rainy|cloudy|snowy)$"),
+    weather: Optional[str] = Query(None, pattern="^(sunny|rainy|cloudy|snowy)$"),
     limit: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -580,7 +580,7 @@ def get_hybrid_recommendations(
 
 @router.get("/weather", response_model=List[MovieListItem])
 def get_weather_recommendations(
-    weather: str = Query(..., regex="^(sunny|rainy|cloudy|snowy)$"),
+    weather: str = Query(..., pattern="^(sunny|rainy|cloudy|snowy)$"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
@@ -591,7 +591,7 @@ def get_weather_recommendations(
 
 @router.get("/mbti", response_model=List[MovieListItem])
 def get_mbti_recommendations(
-    mbti: str = Query(..., regex="^[EI][NS][TF][JP]$"),
+    mbti: str = Query(..., pattern="^[EI][NS][TF][JP]$"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
@@ -602,7 +602,7 @@ def get_mbti_recommendations(
 
 @router.get("/emotion", response_model=List[MovieListItem])
 def get_emotion_recommendations(
-    emotion: str = Query(..., regex="^(healing|tension|energy|romance|deep|fantasy|light)$"),
+    emotion: str = Query(..., pattern="^(healing|tension|energy|romance|deep|fantasy|light)$"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):

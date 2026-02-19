@@ -73,8 +73,8 @@ def get_movies(
     max_rating: Optional[float] = None,
     year_from: Optional[int] = None,
     year_to: Optional[int] = None,
-    sort_by: str = Query("popularity", regex="^(popularity|vote_average|release_date)$"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    sort_by: str = Query("popularity", pattern="^(popularity|vote_average|release_date)$"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
