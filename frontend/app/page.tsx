@@ -68,6 +68,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchRecommendations = async () => {
       setLoading(true);
+      setRecommendations(null);
       try {
         const data = await getHomeRecommendations(weatherCondition, mood);
         setRecommendations(data);
