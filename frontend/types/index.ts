@@ -148,7 +148,7 @@ export type MBTIType =
   | "ISTP" | "ISFP" | "ESTP" | "ESFP";
 
 // Mood types
-export type MoodType = "relaxed" | "tense" | "excited" | "emotional" | "imaginative" | "light";
+export type MoodType = "calm" | "energetic" | "gloomy" | "stifled" | "soft" | "tense" | "empty" | "joyful";
 
 // LLM types
 export interface CatchphraseResponse {

@@ -1,5 +1,5 @@
 """
-Regenerate emotion_tags with 7 emotion clusters
+Regenerate emotion_tags with 9 emotion clusters
 Based on keywords (English) and overview_ko (Korean)
 
 Clusters:
@@ -10,6 +10,8 @@ Clusters:
 - deep: 인생/고독/실화/철학
 - fantasy: 마법/우주/초능력/타임루프
 - light: 유머/일상/친구/패러디
+- melancholy: 슬픔/우울/상실/눈물/이별의아픔
+- void: 공허/허무/존재불안/자아탐색/고립
 """
 
 import os
@@ -167,6 +169,55 @@ CLUSTER_KEYWORDS = {
             "소동", "장난", "촌스러운", "밝은", "가벼운", "떠들썩", "해프닝",
             "엉망", "대소동", "난리", "시끌벅적", "왁자지껄", "허당", "실수"
         }
+    },
+    "melancholy": {
+        "en": {
+            "sadness", "sad", "sorrow", "grief", "loss", "mourning",
+            "tears", "cry", "crying", "weep", "melancholy", "melancholic",
+            "depression", "depressed", "despair", "hopeless", "hopelessness",
+            "heartbreak", "heartbroken", "regret", "remorse", "guilt",
+            "farewell", "goodbye", "separation", "parting", "missing",
+            "loneliness", "lonely", "alone", "abandoned", "neglected",
+            "tragedy", "tragic", "suffering", "pain", "anguish", "agony",
+            "death", "dying", "funeral", "memorial", "widow", "orphan",
+            "rain", "autumn", "winter", "cold", "dark", "gray"
+        },
+        "ko": {
+            "슬픔", "슬픈", "눈물", "울다", "비통", "애도", "상실",
+            "이별", "헤어짐", "그리움", "그리워", "보고싶", "외로움", "외로운",
+            "고독", "혼자", "쓸쓸", "허전", "서글픈", "서러운", "서럽",
+            "우울", "우울한", "절망", "희망없", "암울", "침울",
+            "후회", "회한", "죄책감", "자책", "미안", "용서",
+            "비극", "비극적", "고통", "아픔", "괴로움", "시련",
+            "죽음", "임종", "장례", "유서", "떠나", "사별",
+            "가을", "겨울", "비", "어둠", "회색", "잿빛"
+        }
+    },
+    "void": {
+        "en": {
+            "emptiness", "empty", "void", "hollow", "numb", "numbness",
+            "existential", "existence", "meaningless", "purposeless", "aimless",
+            "identity", "self", "who am i", "soul", "inner",
+            "alienation", "alienated", "disconnected", "detached", "apathetic",
+            "isolation", "isolated", "solitary", "withdrawn", "recluse",
+            "absurd", "absurdism", "nihilism", "nihilistic", "futile", "futility",
+            "wandering", "drifting", "lost", "searching", "seeking",
+            "silence", "quiet", "still", "stagnant", "monotonous",
+            "routine", "repetition", "trapped", "stuck", "limbo",
+            "philosophical", "contemplation", "introspection", "reflection"
+        },
+        "ko": {
+            "공허", "공허한", "허무", "허무한", "텅빈", "비어있",
+            "존재", "실존", "의미없", "무의미", "목적없", "방황",
+            "정체성", "자아", "나는누구", "내면", "영혼",
+            "소외", "소외된", "단절", "고립", "고립된", "무감각",
+            "허탈", "허탈한", "무기력", "무기력한", "멍하",
+            "부조리", "허무주의", "니힐", "회의", "회의적",
+            "떠돌", "방랑", "표류", "길잃", "찾아서",
+            "침묵", "고요", "정적", "멈춘", "단조로운",
+            "반복", "갇힌", "갇혀", "루틴", "일상의무게",
+            "철학", "성찰", "사색", "내성", "자기성찰"
+        }
     }
 }
 
@@ -178,7 +229,9 @@ GENRE_CLUSTER_BOOST = {
     "romance": ["로맨스", "멜로", "Romance"],
     "deep": ["드라마", "다큐멘터리", "전쟁", "역사", "Drama", "Documentary", "War", "History"],
     "fantasy": ["판타지", "SF", "Fantasy", "Science Fiction"],
-    "light": ["코미디", "애니메이션", "가족", "Comedy", "Animation", "Family"]  # 가족 추가
+    "light": ["코미디", "애니메이션", "가족", "Comedy", "Animation", "Family"],  # 가족 추가
+    "melancholy": ["드라마", "멜로", "로맨스", "전쟁", "Drama", "Romance", "War"],
+    "void": ["드라마", "SF", "Drama", "Science Fiction"]
 }
 
 # Negative keywords (감점 키워드) - 클러스터와 반대되는 키워드
@@ -212,6 +265,14 @@ NEGATIVE_KEYWORDS = {
     "light": {
         "en": {"murder", "horror", "terror", "gore", "torture", "death", "tragedy"},
         "ko": {"살인", "공포", "테러", "잔혹", "고문", "죽음", "비극", "슬픔"}
+    },
+    "melancholy": {
+        "en": {"comedy", "funny", "hilarious", "parody", "action", "superhero", "blockbuster"},
+        "ko": {"코미디", "웃긴", "유쾌", "패러디", "액션", "히어로", "블록버스터"}
+    },
+    "void": {
+        "en": {"comedy", "funny", "action", "superhero", "romantic comedy", "feel-good", "party"},
+        "ko": {"코미디", "웃긴", "액션", "히어로", "로코", "유쾌", "파티", "신나는"}
     }
 }
 
@@ -223,7 +284,9 @@ GENRE_PENALTY = {
     "romance": ["공포", "Horror"],
     "deep": ["애니메이션", "Animation"],
     "fantasy": ["다큐멘터리", "Documentary"],
-    "light": ["공포", "스릴러", "Horror", "Thriller"]
+    "light": ["공포", "스릴러", "Horror", "Thriller"],
+    "melancholy": ["코미디", "애니메이션", "Comedy", "Animation"],
+    "void": ["코미디", "애니메이션", "가족", "Comedy", "Animation", "Family"]
 }
 
 
@@ -294,7 +357,7 @@ def calculate_cluster_scores(keywords: List[str], overview_ko: str, genres: List
 
 def main():
     print("=" * 60)
-    print("Regenerating emotion_tags with 7 emotion clusters")
+    print("Regenerating emotion_tags with 9 emotion clusters")
     print("(Keyword-based only, skipping movies with existing tags)")
     print("Max score cap: 0.7")
     print("=" * 60)

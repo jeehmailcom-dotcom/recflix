@@ -61,14 +61,15 @@ export default function HomePage() {
     };
   }, [weather]);
 
+  // 날씨 미선택 시 서울 기본값으로 condition 결정
+  const weatherCondition = weather?.condition ?? "sunny";
+
   // Fetch recommendations when weather, mood, or auth state changes
   useEffect(() => {
     const fetchRecommendations = async () => {
-      if (!weather) return;
-
       setLoading(true);
       try {
-        const data = await getHomeRecommendations(weather.condition, mood);
+        const data = await getHomeRecommendations(weatherCondition, mood);
         setRecommendations(data);
         setError(null);
       } catch (err) {
@@ -80,7 +81,7 @@ export default function HomePage() {
     };
 
     fetchRecommendations();
-  }, [weather, mood, isAuthenticated]);  // isAuthenticated 추가: 로그인/로그아웃 시 추천 갱신
+  }, [weatherCondition, mood, isAuthenticated]);
 
   const handleWeatherChange = (condition: WeatherType) => {
     setManualWeather(condition);

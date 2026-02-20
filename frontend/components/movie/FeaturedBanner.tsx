@@ -38,19 +38,21 @@ const weatherConfig: Record<WeatherType, { icon: React.ReactNode; label: string;
 // 날씨 섹션 고정 문구
 const WEATHER_MESSAGE = "날씨에 따른 영화추천";
 
-// 기분 관련 설정 (2x3 그리드 순서)
-const moodConfig: Record<MoodType, { emoji: string; label: string; row: number }> = {
-  relaxed: { emoji: "😌", label: "편안한", row: 1 },
-  tense: { emoji: "😰", label: "긴장감", row: 1 },
-  excited: { emoji: "😆", label: "신나는", row: 1 },
-  emotional: { emoji: "💕", label: "감성적", row: 2 },
-  imaginative: { emoji: "🔮", label: "상상에빠지고싶은", row: 2 },
-  light: { emoji: "😄", label: "가볍게", row: 2 },
+// 기분 관련 설정 (2x4 그리드 순서)
+const moodConfig: Record<MoodType, { emoji: string; label: string }> = {
+  calm: { emoji: "🙂", label: "평온한" },
+  energetic: { emoji: "😄", label: "활기찬" },
+  gloomy: { emoji: "😢", label: "울적한" },
+  stifled: { emoji: "😤", label: "답답한" },
+  soft: { emoji: "💕", label: "몽글몽글한" },
+  tense: { emoji: "😬", label: "긴장된" },
+  empty: { emoji: "😶", label: "공허한" },
+  joyful: { emoji: "🤣", label: "유쾌한" },
 };
 
-// 기분 버튼 순서 (2x3 그리드)
-const moodRow1: MoodType[] = ["relaxed", "tense", "excited"];
-const moodRow2: MoodType[] = ["emotional", "imaginative", "light"];
+// 기분 버튼 순서 (2x4 그리드)
+const moodRow1: MoodType[] = ["calm", "energetic", "gloomy", "stifled"];
+const moodRow2: MoodType[] = ["soft", "tense", "empty", "joyful"];
 
 // 기분 섹션 고정 문구
 const MOOD_MESSAGE = "지금 기분이 어떠세요?";

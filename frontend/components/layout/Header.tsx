@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Search, Heart, Star, Film, User, LogOut, Home } from "lucide-react";
+import { Menu, X, Search, Heart, Star, User, LogOut, Home, Brain, Cloud, Smile } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { WeatherIndicator } from "@/components/weather/WeatherBanner";
 import type { Weather } from "@/types";
@@ -78,7 +78,10 @@ export default function Header() {
 
   const navItems = [
     { href: "/", label: "홈", icon: Home },
-    { href: "/movies", label: "영화 검색", icon: Film },
+    { href: "/mbti", label: "MBTI", icon: Brain },
+    { href: "/weather", label: "날씨", icon: Cloud },
+    { href: "/mood", label: "무드", icon: Smile },
+    { href: "/profile", label: "MY페이지", icon: User },
   ];
 
   const authNavItems = [
@@ -107,13 +110,13 @@ export default function Header() {
               <span className="text-xl md:text-2xl font-bold text-primary-500">RecFlix</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
+            {/* Desktop Navigation - Center */}
+            <nav className="hidden md:flex items-center justify-center flex-1 space-x-8">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`transition ${
+                  className={`text-sm transition ${
                     isActivePath(item.href)
                       ? "text-primary-400 font-medium"
                       : "text-white/80 hover:text-white"
@@ -122,20 +125,6 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-              {isAuthenticated &&
-                authNavItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`transition ${
-                      isActivePath(item.href)
-                        ? "text-primary-400 font-medium"
-                        : "text-white/80 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
             </nav>
 
             {/* Right Section */}
@@ -157,13 +146,20 @@ export default function Header() {
               </button>
 
               {/* Search - Desktop */}
-              <form onSubmit={handleSearch} className="hidden md:block relative">
+              <form onSubmit={handleSearch} className="hidden md:flex items-center relative">
+                <button
+                  type="button"
+                  onClick={() => window.location.href = "/movies"}
+                  className="absolute left-3 text-white/50 hover:text-white transition"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="영화 검색..."
-                  className="bg-dark-100/50 border border-white/20 rounded-full px-4 py-1.5 text-sm text-white placeholder-white/50 focus:outline-none focus:border-primary-500 transition-all w-48"
+                  className="bg-dark-100/50 border border-white/20 rounded-full pl-9 pr-4 py-1.5 text-sm text-white placeholder-white/50 focus:outline-none focus:border-primary-500 transition-all w-48"
                 />
               </form>
 

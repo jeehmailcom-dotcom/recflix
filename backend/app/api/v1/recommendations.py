@@ -31,34 +31,40 @@ WEIGHT_WEATHER_NO_MOOD = 0.25
 WEIGHT_PERSONAL_NO_MOOD = 0.40
 
 # Mood to emotion_tags mapping
-# DB 키 (7대 감성 클러스터): healing, tension, energy, romance, deep, fantasy, light
+# DB 키 (9대 감성 클러스터): healing, tension, energy, romance, deep, fantasy, light, melancholy, void
 MOOD_EMOTION_MAPPING = {
-    "relaxed": ["healing"],           # 편안한 → 힐링 (가족애/우정/성장/힐링)
-    "tense": ["tension"],             # 긴장감 → 긴장감 (반전/추리/서스펜스/심리전)
-    "excited": ["energy"],            # 신나는 → 에너지 (폭발/추격전/복수/히어로)
-    "emotional": ["romance", "deep"], # 감성적인 → 로맨스+깊이 (첫사랑/이별 + 인생/철학)
-    "imaginative": ["fantasy"],       # 상상력 → 판타지 (마법/우주/초능력/타임루프)
-    "light": ["light"],               # 가벼운 → 라이트 (유머/일상/친구/패러디)
+    "calm": ["healing"],              # 평온함 → 힐링 (가족애/우정/성장/힐링)
+    "energetic": ["energy"],          # 활기찬 → 에너지 (폭발/추격전/복수/히어로)
+    "gloomy": ["melancholy"],         # 울적한 → 멜랑콜리 (슬픔/우울/고독/눈물)
+    "stifled": ["tension"],           # 답답한 → 긴장감 (반전/추리/서스펜스/심리전)
+    "soft": ["romance"],              # 몽글몽글한 → 로맨스 (첫사랑/설렘/따뜻한 감정)
+    "tense": ["tension"],             # 긴장된 → 긴장감 (반전/추리/서스펜스/심리전)
+    "empty": ["void"],                # 공허한 → 공허 (존재/고독/허무/자아탐색)
+    "joyful": ["light"],              # 유쾌한 → 라이트 (유머/일상/친구/패러디)
 }
 
 # Mood label mapping
 MOOD_LABELS = {
-    "relaxed": "#편안한",
-    "tense": "#긴장감",
-    "excited": "#신나는",
-    "emotional": "#감성적인",
-    "imaginative": "#상상력",
-    "light": "#가벼운",
+    "calm": "#평온함",
+    "energetic": "#활기찬",
+    "gloomy": "#울적한",
+    "stifled": "#답답한",
+    "soft": "#몽글몽글한",
+    "tense": "#긴장된",
+    "empty": "#공허한",
+    "joyful": "#유쾌한",
 }
 
 # Mood section titles and descriptions
 MOOD_SECTION_CONFIG = {
-    "relaxed": {"title": "😌 편안한 기분일 때", "desc": "마음이 따뜻해지는 영화"},
-    "tense": {"title": "😰 긴장감이 필요할 때", "desc": "손에 땀을 쥐게 하는 영화"},
-    "excited": {"title": "😆 신나는 기분일 때", "desc": "에너지 넘치는 영화"},
-    "emotional": {"title": "💕 감성적인 기분일 때", "desc": "감동이 밀려오는 영화"},
-    "imaginative": {"title": "🔮 상상에 빠지고 싶을 때", "desc": "판타지 세계로 떠나는 영화"},
-    "light": {"title": "😄 가볍게 보고 싶을 때", "desc": "부담 없이 즐기는 영화"},
+    "calm": {"title": "😌 평온한 기분일 때", "desc": "마음이 따뜻해지는 영화"},
+    "energetic": {"title": "⚡ 활기찬 기분일 때", "desc": "에너지 넘치는 영화"},
+    "gloomy": {"title": "🌧️ 울적한 기분일 때", "desc": "감정에 젖어드는 영화"},
+    "stifled": {"title": "😤 답답한 기분일 때", "desc": "속이 뻥 뚫리는 영화"},
+    "soft": {"title": "🫧 몽글몽글한 기분일 때", "desc": "설레는 감정을 채워줄 영화"},
+    "tense": {"title": "😰 긴장된 기분일 때", "desc": "손에 땀을 쥐게 하는 영화"},
+    "empty": {"title": "🌑 공허한 기분일 때", "desc": "마음을 채워줄 영화"},
+    "joyful": {"title": "😄 유쾌한 기분일 때", "desc": "부담 없이 즐기는 영화"},
 }
 
 # Weather label mapping
@@ -365,7 +371,7 @@ def calculate_hybrid_scores(
 @router.get("", response_model=HomeRecommendations)
 def get_home_recommendations(
     weather: Optional[str] = Query(None, pattern="^(sunny|rainy|cloudy|snowy)$"),
-    mood: Optional[str] = Query(None, pattern="^(relaxed|tense|excited|emotional|imaginative|light)$"),
+    mood: Optional[str] = Query(None, pattern="^(calm|energetic|gloomy|stifled|soft|tense|empty|joyful)$"),
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
@@ -409,29 +415,31 @@ def get_home_recommendations(
                 for m, score, tags in top_recommendations
             ]
 
-            # Build title
-            title_parts = []
+            # Build title - 선택 조합에 따라 동적 제목
+            label_parts = []
             if mbti:
-                title_parts.append(f"{mbti}")
+                label_parts.append("MBTI")
             if weather:
-                weather_emoji = {"sunny": "☀️", "rainy": "🌧️", "cloudy": "☁️", "snowy": "❄️"}
-                title_parts.append(weather_emoji.get(weather, ""))
+                label_parts.append("날씨")
             if mood:
-                mood_emoji = {"relaxed": "😌", "tense": "😰", "excited": "😆", "emotional": "💕", "imaginative": "🔮", "light": "😄"}
-                title_parts.append(mood_emoji.get(mood, ""))
+                label_parts.append("기분")
 
-            hybrid_title = "🎯 " + (" + ".join(title_parts) if title_parts else "당신을 위한") + " 맞춤 추천"
+            if label_parts:
+                hybrid_title = "🎯 " + " + ".join(label_parts) + " 기반 큐레이션"
+            else:
+                hybrid_title = "🎯 당신을 위한 맞춤 추천"
 
             # Build description
-            desc_parts = []
+            desc_details = []
             if mbti:
-                desc_parts.append("MBTI")
+                desc_details.append(mbti)
             if weather:
-                desc_parts.append("날씨")
+                weather_label = {"sunny": "맑음", "rainy": "비", "cloudy": "흐림", "snowy": "눈"}
+                desc_details.append(weather_label.get(weather, weather))
             if mood:
-                desc_parts.append("기분")
-            desc_parts.append("취향")
-            hybrid_desc = ", ".join(desc_parts) + "을 모두 고려한 추천"
+                mood_label = MOOD_LABELS.get(mood, mood).replace("#", "")
+                desc_details.append(mood_label)
+            hybrid_desc = " · ".join(desc_details) + " 조합 추천" if desc_details else "취향을 고려한 추천"
 
             hybrid_row = HybridRecommendationRow(
                 title=hybrid_title,
@@ -467,14 +475,14 @@ def get_home_recommendations(
                 movies=[MovieListItem.from_orm_with_genres(m) for m in weather_movies]
             )
 
-    # 기분별 추천 (동적) - 미선택 시 기본값 relaxed
-    current_mood = mood if mood else "relaxed"
-    mood_emotion_keys = MOOD_EMOTION_MAPPING.get(current_mood, ["healing"])
+    # 기분별 추천 (동적) - 미선택 시 기본값 tense (긴장된)
+    current_mood = mood if mood else "tense"
+    mood_emotion_keys = MOOD_EMOTION_MAPPING.get(current_mood, ["tension"])
     primary_emotion = mood_emotion_keys[0]
     mood_movies = get_movies_by_score(db, "emotion_tags", primary_emotion, limit=50, pool_size=100)
     mood_row = None
     if mood_movies:
-        mood_config = MOOD_SECTION_CONFIG.get(current_mood, {"title": "😌 편안한 기분일 때", "desc": "마음이 따뜻해지는 영화"})
+        mood_config = MOOD_SECTION_CONFIG.get(current_mood, {"title": "😰 긴장된 기분일 때", "desc": "손에 땀을 쥐게 하는 영화"})
         mood_row = RecommendationRow(
             title=mood_config["title"],
             description=mood_config["desc"],
@@ -602,7 +610,7 @@ def get_mbti_recommendations(
 
 @router.get("/emotion", response_model=List[MovieListItem])
 def get_emotion_recommendations(
-    emotion: str = Query(..., pattern="^(healing|tension|energy|romance|deep|fantasy|light)$"),
+    emotion: str = Query(..., pattern="^(healing|tension|energy|romance|deep|fantasy|light|melancholy|void)$"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):

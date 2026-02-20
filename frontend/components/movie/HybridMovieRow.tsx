@@ -86,7 +86,7 @@ export default function HybridMovieRow({
         <div className="flex items-center gap-3">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-primary-400" />
-            <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
+            <h2 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">{title}</h2>
           </div>
           {description && (
             <p className="text-sm text-gray-400">{description}</p>

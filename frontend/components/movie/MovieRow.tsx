@@ -79,7 +79,7 @@ export default function MovieRow({ title, description, movies, displayCount = 20
     <section className="relative group/row">
       {/* Header - 한 줄 배치 */}
       <div className="mb-3 flex items-center gap-3">
-        <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
+        <h2 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">{title}</h2>
         {description && (
           <p className="text-sm text-gray-400">{description}</p>
         )}
