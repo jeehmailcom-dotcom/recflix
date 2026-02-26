@@ -2,10 +2,24 @@
 
 ## 파일 정보
 - **파일**: `recflix_db.dump` (21MB, PostgreSQL custom format)
-- **영화 수**: 42,917편
+- **영화 수**: 42,917편 → **6,558편** (2026-02-26 필터링)
 - **LLM 감성 분석**: 1,711편 (새 프롬프트 적용)
 - **키워드 기반 감성**: 41,206편
 - **생성일**: 2026-02-10
+
+## DB 필터링 이력
+
+| 날짜 | 기준 | 이전 편수 | 이후 편수 | 삭제 편수 |
+|------|------|-----------|-----------|-----------|
+| 2026-02-26 | 평점 5.5+ AND 평가수 500+ | 42,917 | 6,558 | 36,359 |
+
+### 필터링 스크립트
+```python
+# 삭제 조건: vote_average < 5.5 OR vote_count < 500
+DELETE_CONDITION = 'vote_average < 5.5 OR vote_count < 500'
+# 관계 테이블(similar_movies, movie_genres, movie_cast, movie_keywords,
+# movie_countries, ratings, collection_movies) 먼저 삭제 후 movies 삭제
+```
 
 ## 포함된 데이터
 | 테이블 | 설명 |
