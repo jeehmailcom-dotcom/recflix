@@ -173,7 +173,8 @@ def main():
     print("(Genre + emotion_tags based, skipping existing)")
     print("=" * 60)
 
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    db_url = os.environ['DATABASE_URL'].replace('postgresql+psycopg://', 'postgresql://')
+    conn = psycopg2.connect(db_url)
     cur = conn.cursor()
 
     # Current status

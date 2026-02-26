@@ -362,7 +362,8 @@ def main():
     print("Max score cap: 0.7")
     print("=" * 60)
 
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    db_url = os.environ['DATABASE_URL'].replace('postgresql+psycopg://', 'postgresql://')
+    conn = psycopg2.connect(db_url)
     cur = conn.cursor()
 
     # Count movies with existing emotion_tags (LLM or previously generated)

@@ -178,14 +178,8 @@ def run_import():
         print("  Inserting persons...")
         person_list = sorted(all_persons)
         for i in range(0, len(person_list), BATCH_SIZE):
-            batch = person_list[i:i+BATCH_SIZE]
-            values = ", ".join(
-                conn.execute(text("SELECT format('(%L)', :name)"), {"name": n}).scalar()
-                for n in batch
-            )
-            # Use a simpler approach: individual parameterized inserts in batch
-            for name in batch:
-                conn.execute(text("INSERT INTO persons (name) VALUES (:name)"), {"name": name})
+            batch = [{"name": n} for n in person_list[i:i+BATCH_SIZE]]
+            conn.execute(text("INSERT INTO persons (name) VALUES (:name)"), batch)
             if (i // BATCH_SIZE) % 10 == 0:
                 print(f"    {i + len(batch)}/{len(person_list)} persons...")
         conn.commit()
@@ -204,8 +198,9 @@ def run_import():
 
         print("  Inserting keywords...")
         kw_list = sorted(all_keywords)
-        for name in kw_list:
-            conn.execute(text("INSERT INTO keywords (name) VALUES (:name)"), {"name": name})
+        for i in range(0, len(kw_list), BATCH_SIZE):
+            batch = [{"name": n} for n in kw_list[i:i+BATCH_SIZE]]
+            conn.execute(text("INSERT INTO keywords (name) VALUES (:name)"), batch)
         conn.commit()
 
         result = conn.execute(text("SELECT id, name FROM keywords"))
@@ -220,8 +215,10 @@ def run_import():
                 all_countries.add(c)
         print(f"  Unique countries: {len(all_countries)}")
 
-        for name in sorted(all_countries):
-            conn.execute(text("INSERT INTO countries (name) VALUES (:name)"), {"name": name})
+        country_list = sorted(all_countries)
+        for i in range(0, len(country_list), BATCH_SIZE):
+            batch = [{"name": n} for n in country_list[i:i+BATCH_SIZE]]
+            conn.execute(text("INSERT INTO countries (name) VALUES (:name)"), batch)
         conn.commit()
 
         result = conn.execute(text("SELECT id, name FROM countries"))
@@ -232,45 +229,19 @@ def run_import():
         print("\n[5/7] Inserting movies...")
         movie_ids_set = set()
 
-        for i in range(0, len(rows), BATCH_SIZE):
-            batch = rows[i:i+BATCH_SIZE]
-            for row in batch:
-                movie_id = int(row['id'])
-                movie_ids_set.add(movie_id)
+        movie_ids_set = {int(row['id']) for row in rows}
 
-                # CSV title = Korean, CSV title_ko_en = English/original
+        for i in range(0, len(rows), BATCH_SIZE):
+            batch_rows = rows[i:i+BATCH_SIZE]
+            batch_params = []
+            for row in batch_rows:
+                movie_id = int(row['id'])
                 title_en = row.get('title_ko_en', '').strip() or row.get('title', '').strip()
                 title_ko = row.get('title', '').strip()
-
-                overview = row.get('overview', '').strip() or None
-                director = row.get('director', '').strip() or None
-                director_ko = row.get('director_ko', '').strip() or None
-                cast_ko = row.get('cast_ko', '').strip() or None
-                countries_ko = row.get('production_countries_ko', '').strip() or None
-                release_season = row.get('release_season', '').strip() or None
-
-                # Restore backed-up scores
                 emotion = emotion_backup.get(movie_id)
                 mbti = mbti_backup.get(movie_id)
                 weather = weather_backup.get(movie_id)
-
-                conn.execute(text("""
-                    INSERT INTO movies (
-                        id, title, title_ko, certification, runtime,
-                        vote_average, vote_count, overview, popularity,
-                        poster_path, release_date, is_adult,
-                        director, director_ko, cast_ko,
-                        production_countries_ko, release_season, weighted_score,
-                        emotion_tags, mbti_scores, weather_scores
-                    ) VALUES (
-                        :id, :title, :title_ko, :cert, :runtime,
-                        :vote_avg, :vote_cnt, :overview, :popularity,
-                        :poster, :release_date, :is_adult,
-                        :director, :director_ko, :cast_ko,
-                        :countries_ko, :release_season, :weighted_score,
-                        :emotion_tags, :mbti_scores, :weather_scores
-                    )
-                """), {
+                batch_params.append({
                     "id": movie_id,
                     "title": title_en,
                     "title_ko": title_ko,
@@ -278,22 +249,38 @@ def run_import():
                     "runtime": parse_int(row.get('runtime', '')),
                     "vote_avg": parse_float(row.get('vote_average', '')),
                     "vote_cnt": parse_int(row.get('vote_count', '')),
-                    "overview": overview,
+                    "overview": row.get('overview', '').strip() or None,
                     "popularity": parse_float(row.get('popularity', '')),
                     "poster": row.get('poster_path', '').strip() or None,
                     "release_date": parse_date(row.get('release_date', '')),
                     "is_adult": parse_bool(row.get('is_adult', '')),
-                    "director": director,
-                    "director_ko": director_ko,
-                    "cast_ko": cast_ko,
-                    "countries_ko": countries_ko,
-                    "release_season": release_season,
+                    "director": row.get('director', '').strip() or None,
+                    "director_ko": row.get('director_ko', '').strip() or None,
+                    "cast_ko": row.get('cast_ko', '').strip() or None,
+                    "countries_ko": row.get('production_countries_ko', '').strip() or None,
+                    "release_season": row.get('release_season', '').strip() or None,
                     "weighted_score": parse_float(row.get('weighted_score', '')),
                     "emotion_tags": json.dumps(emotion) if emotion else None,
                     "mbti_scores": json.dumps(mbti) if mbti else None,
                     "weather_scores": json.dumps(weather) if weather else None,
                 })
-
+            conn.execute(text("""
+                INSERT INTO movies (
+                    id, title, title_ko, certification, runtime,
+                    vote_average, vote_count, overview, popularity,
+                    poster_path, release_date, is_adult,
+                    director, director_ko, cast_ko,
+                    production_countries_ko, release_season, weighted_score,
+                    emotion_tags, mbti_scores, weather_scores
+                ) VALUES (
+                    :id, :title, :title_ko, :cert, :runtime,
+                    :vote_avg, :vote_cnt, :overview, :popularity,
+                    :poster, :release_date, :is_adult,
+                    :director, :director_ko, :cast_ko,
+                    :countries_ko, :release_season, :weighted_score,
+                    :emotion_tags, :mbti_scores, :weather_scores
+                )
+            """), batch_params)
             conn.commit()
             print(f"  {min(i + BATCH_SIZE, len(rows))}/{len(rows)} movies...")
 
@@ -302,87 +289,78 @@ def run_import():
 
         # movie_genres
         print("  Inserting movie_genres...")
-        count = 0
-        for i, row in enumerate(rows):
+        genre_params = []
+        for row in rows:
             movie_id = int(row['id'])
             for genre_name in parse_list(row.get('genres', '')):
                 genre_id = genre_map.get(genre_name)
                 if genre_id:
-                    conn.execute(text(
-                        "INSERT INTO movie_genres (movie_id, genre_id) VALUES (:mid, :gid) ON CONFLICT DO NOTHING"
-                    ), {"mid": movie_id, "gid": genre_id})
-                    count += 1
-            if (i + 1) % BATCH_SIZE == 0:
-                conn.commit()
+                    genre_params.append({"mid": movie_id, "gid": genre_id})
+        for i in range(0, len(genre_params), BATCH_SIZE):
+            conn.execute(text(
+                "INSERT INTO movie_genres (movie_id, genre_id) VALUES (:mid, :gid) ON CONFLICT DO NOTHING"
+            ), genre_params[i:i+BATCH_SIZE])
         conn.commit()
-        print(f"    {count} genre links")
+        print(f"    {len(genre_params)} genre links")
 
         # movie_cast (actors + directors)
         print("  Inserting movie_cast...")
-        count = 0
-        for i, row in enumerate(rows):
+        cast_params = []
+        for row in rows:
             movie_id = int(row['id'])
-            # Actors
             for name in parse_list(row.get('cast', '')):
                 pid = person_map.get(name)
                 if pid:
-                    conn.execute(text(
-                        "INSERT INTO movie_cast (movie_id, person_id, role) VALUES (:mid, :pid, 'actor') ON CONFLICT DO NOTHING"
-                    ), {"mid": movie_id, "pid": pid})
-                    count += 1
-            # Director
+                    cast_params.append({"mid": movie_id, "pid": pid, "role": "actor"})
             director = row.get('director', '').strip()
             if director:
                 pid = person_map.get(director)
                 if pid:
-                    conn.execute(text(
-                        "INSERT INTO movie_cast (movie_id, person_id, role) VALUES (:mid, :pid, 'director') ON CONFLICT DO NOTHING"
-                    ), {"mid": movie_id, "pid": pid})
-                    count += 1
-            if (i + 1) % BATCH_SIZE == 0:
-                conn.commit()
+                    cast_params.append({"mid": movie_id, "pid": pid, "role": "director"})
+        for i in range(0, len(cast_params), BATCH_SIZE):
+            conn.execute(text(
+                "INSERT INTO movie_cast (movie_id, person_id, role) VALUES (:mid, :pid, :role) ON CONFLICT DO NOTHING"
+            ), cast_params[i:i+BATCH_SIZE])
         conn.commit()
-        print(f"    {count} cast links")
+        print(f"    {len(cast_params)} cast links")
 
         # movie_keywords
         print("  Inserting movie_keywords...")
-        count = 0
-        for i, row in enumerate(rows):
+        kw_params = []
+        for row in rows:
             movie_id = int(row['id'])
             for kw in parse_list(row.get('keywords', '')):
                 kid = keyword_map.get(kw)
                 if kid:
-                    conn.execute(text(
-                        "INSERT INTO movie_keywords (movie_id, keyword_id) VALUES (:mid, :kid) ON CONFLICT DO NOTHING"
-                    ), {"mid": movie_id, "kid": kid})
-                    count += 1
-            if (i + 1) % BATCH_SIZE == 0:
-                conn.commit()
+                    kw_params.append({"mid": movie_id, "kid": kid})
+        for i in range(0, len(kw_params), BATCH_SIZE):
+            conn.execute(text(
+                "INSERT INTO movie_keywords (movie_id, keyword_id) VALUES (:mid, :kid) ON CONFLICT DO NOTHING"
+            ), kw_params[i:i+BATCH_SIZE])
         conn.commit()
-        print(f"    {count} keyword links")
+        print(f"    {len(kw_params)} keyword links")
 
         # movie_countries
         print("  Inserting movie_countries...")
-        count = 0
-        for i, row in enumerate(rows):
+        country_params = []
+        for row in rows:
             movie_id = int(row['id'])
             for c in parse_list(row.get('production_countries', '')):
                 cid = country_map.get(c)
                 if cid:
-                    conn.execute(text(
-                        "INSERT INTO movie_countries (movie_id, country_id) VALUES (:mid, :cid) ON CONFLICT DO NOTHING"
-                    ), {"mid": movie_id, "cid": cid})
-                    count += 1
-            if (i + 1) % BATCH_SIZE == 0:
-                conn.commit()
+                    country_params.append({"mid": movie_id, "cid": cid})
+        for i in range(0, len(country_params), BATCH_SIZE):
+            conn.execute(text(
+                "INSERT INTO movie_countries (movie_id, country_id) VALUES (:mid, :cid) ON CONFLICT DO NOTHING"
+            ), country_params[i:i+BATCH_SIZE])
         conn.commit()
-        print(f"    {count} country links")
+        print(f"    {len(country_params)} country links")
 
         # similar_movies
         print("  Inserting similar_movies...")
-        count = 0
+        sim_params = []
         skipped = 0
-        for i, row in enumerate(rows):
+        for row in rows:
             movie_id = int(row['id'])
             similar_ids_str = row.get('similar_movie_ids', '').strip()
             if not similar_ids_str:
@@ -396,16 +374,15 @@ def run_import():
                 except ValueError:
                     continue
                 if sid in movie_ids_set and sid != movie_id:
-                    conn.execute(text(
-                        "INSERT INTO similar_movies (movie_id, similar_movie_id) VALUES (:mid, :sid) ON CONFLICT DO NOTHING"
-                    ), {"mid": movie_id, "sid": sid})
-                    count += 1
+                    sim_params.append({"mid": movie_id, "sid": sid})
                 else:
                     skipped += 1
-            if (i + 1) % BATCH_SIZE == 0:
-                conn.commit()
+        for i in range(0, len(sim_params), BATCH_SIZE):
+            conn.execute(text(
+                "INSERT INTO similar_movies (movie_id, similar_movie_id) VALUES (:mid, :sid) ON CONFLICT DO NOTHING"
+            ), sim_params[i:i+BATCH_SIZE])
         conn.commit()
-        print(f"    {count} similar links ({skipped} skipped - not in dataset)")
+        print(f"    {len(sim_params)} similar links ({skipped} skipped - not in dataset)")
 
         # ── 7. Verify ──
         print("\n[7/7] Verification...")
