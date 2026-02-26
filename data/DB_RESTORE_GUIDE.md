@@ -24,7 +24,7 @@
 brew install postgresql@16
 
 # Ubuntu/Debian
-sudo apt install postgresql-16
+sudo apt install postgresql-161
 
 # Windows
 # https://www.postgresql.org/download/windows/ 에서 설치
