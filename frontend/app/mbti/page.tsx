@@ -86,22 +86,22 @@ export default function MBTIPage() {
   return (
     <div className="min-h-screen pb-24 md:pb-20">
       {/* Header */}
-      <div className="px-4 md:px-8 lg:px-12 pt-8 pb-6">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2">
+      <div className="px-4 md:px-8 lg:px-12 pt-8 pb-6 text-center">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
           당신의 MBTI는 무엇인가요?
         </h1>
-        <p className="text-white/60">
+        <p className="text-foreground/60">
           MBTI 성격 유형에 딱 맞는 영화를 추천해 드릴게요
         </p>
       </div>
 
       {/* Non-logged-in notice */}
       {!isAuthenticated && (
-        <div className="mx-4 md:mx-8 lg:mx-12 mb-6 px-4 py-3 bg-primary-600/20 border border-primary-500/40 rounded-xl text-sm text-primary-300 flex items-center gap-2">
+        <div className="mx-4 md:mx-8 lg:mx-12 mb-6 px-4 py-3 bg-primary-50 border border-primary-200 rounded-xl text-sm text-primary-700 flex items-center gap-2">
           <span>💡</span>
           <span>
             지금은 임시 선택이에요.{" "}
-            <Link href="/login" className="underline hover:text-white transition">
+            <Link href="/login" className="underline hover:text-primary-900 transition">
               로그인
             </Link>
             하면 MBTI가 저장되고 더 정확한 추천을 받을 수 있어요.
@@ -111,7 +111,7 @@ export default function MBTIPage() {
 
       {/* MBTI Grid */}
       <div className="px-4 md:px-8 lg:px-12 mb-10">
-        <div className="grid grid-cols-4 gap-2 max-w-xl">
+        <div className="grid grid-cols-4 gap-2 max-w-xl mx-auto">
           {MBTI_TYPES.map((mbti) => {
             const isSelected = selectedMBTI === mbti;
             return (
@@ -121,8 +121,8 @@ export default function MBTIPage() {
                 disabled={saving}
                 className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border transition-all duration-200 ${
                   isSelected
-                    ? `${getMBTIColor(mbti)} border-transparent text-white scale-105 shadow-lg`
-                    : "bg-dark-100/60 border-white/10 hover:border-white/30 hover:bg-dark-100 text-white/70"
+                    ? "bg-primary-500 border-primary-500 text-white scale-105 shadow-lg"
+                    : "bg-white border-gray-200 hover:border-secondary-300 hover:bg-secondary-50 text-foreground/70"
                 }`}
               >
                 <span className="text-sm font-bold">{mbti}</span>
@@ -138,7 +138,7 @@ export default function MBTIPage() {
           <p className="text-primary-400 text-sm mt-3">저장 중...</p>
         )}
         {isAuthenticated && selectedMBTI && !saving && (
-          <p className="text-green-400 text-sm mt-3">
+          <p className="text-green-600 text-sm mt-3">
             ✓ {selectedMBTI} 저장됨
           </p>
         )}
@@ -174,7 +174,7 @@ export default function MBTIPage() {
         )}
 
         {!selectedMBTI && (
-          <div className="flex flex-col items-center justify-center py-20 text-white/40">
+          <div className="flex flex-col items-center justify-center py-20 text-foreground/40">
             <span className="text-6xl mb-4">🧠</span>
             <p className="text-lg">MBTI를 선택하면 추천이 시작됩니다</p>
           </div>

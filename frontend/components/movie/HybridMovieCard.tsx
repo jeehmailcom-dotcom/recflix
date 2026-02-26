@@ -15,21 +15,20 @@ interface HybridMovieCardProps {
   showQuickView?: boolean;
 }
 
-// Tag color mapping
-const TAG_COLORS: Record<string, string> = {
-  mbti: "bg-purple-500/80 text-purple-100",
-  weather: "bg-blue-500/80 text-blue-100",
-  personal: "bg-green-500/80 text-green-100",
-  rating: "bg-yellow-500/80 text-yellow-100",
-  popular: "bg-red-500/80 text-red-100",
-};
-
 function RecommendationTagBadge({ tag }: { tag: RecommendationTag }) {
-  const colorClass = TAG_COLORS[tag.type] || "bg-gray-500/80 text-gray-100";
+  console.log("[TagBadge] tag.type:", tag.type, "| tag.label:", tag.label);
+  const colorClass =
+    tag.type === "mbti"     ? "bg-primary-500 text-white" :
+    tag.type === "weather"  ? "bg-secondary-500 text-white" :
+    tag.type === "mood"     ? "bg-emerald-100 text-emerald-700" :
+    tag.type === "personal" ? "bg-secondary-400 text-white" :
+    tag.type === "rating"   ? "bg-yellow-500 text-white" :
+    tag.type === "popular"  ? "bg-orange-500 text-white" :
+                              "bg-gray-400 text-white";
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${colorClass}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide shadow-sm ${colorClass}`}
     >
       {tag.label}
     </span>
@@ -43,8 +42,8 @@ export default function HybridMovieCard({ movie, index = 0, showQuickView = true
   const displayTitle = movie.title_ko || movie.title;
   const year = movie.release_date?.split("-")[0];
 
-  // Show top 2 tags
-  const displayTags = movie.recommendation_tags.slice(0, 2);
+  // Show top 3 tags (mbti + weather + mood)
+  const displayTags = movie.recommendation_tags.slice(0, 3);
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,7 +61,7 @@ export default function HybridMovieCard({ movie, index = 0, showQuickView = true
       >
         <Link href={`/movies/${movie.id}`}>
           {/* Poster Container */}
-          <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-dark-100 ring-2 ring-primary-500/30 group-hover:ring-primary-500/70 transition-all duration-300 cursor-pointer">
+          <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-200 ring-2 ring-primary-500/30 transition-all duration-300 cursor-pointer">
             {movie.poster_path && !imageError ? (
               <Image
                 src={getImageUrl(movie.poster_path, "w342")}
@@ -73,8 +72,8 @@ export default function HybridMovieCard({ movie, index = 0, showQuickView = true
                 sizes="(max-width: 640px) 160px, 180px"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-dark-100">
-                <span className="text-white/30 text-4xl">🎬</span>
+              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                <span className="text-foreground/30 text-4xl">🎬</span>
               </div>
             )}
 
@@ -116,11 +115,11 @@ export default function HybridMovieCard({ movie, index = 0, showQuickView = true
 
           {/* Info - 중앙 정렬 */}
           <div className="mt-2 space-y-1 text-center">
-            <h3 className="text-white font-medium text-sm truncate group-hover:text-primary-400 transition">
+            <h3 className="text-foreground font-medium text-sm truncate group-hover:text-primary-400 transition">
               {displayTitle}
             </h3>
 
-            <div className="flex items-center justify-center gap-1.5 text-xs text-white/50">
+            <div className="flex items-center justify-center gap-1.5 text-xs text-foreground/50">
               {year && <span>{year}</span>}
               {movie.genres.length > 0 && (
                 <>

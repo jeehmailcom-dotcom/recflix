@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { useAuthStore } from "@/stores/authStore";
-import { getMBTIColor } from "@/lib/utils";
-import type { MBTIType } from "@/types";
+import { getMBTIColor, getImageUrl } from "@/lib/utils";
+import { getFavorites } from "@/lib/api";
+import type { MBTIType, Movie } from "@/types";
 
 const MBTI_TYPES: MBTIType[] = [
   "INTJ", "INTP", "ENTJ", "ENTP",
@@ -18,6 +21,8 @@ export default function ProfilePage() {
   const { user, isAuthenticated, fetchUser, updateMBTI, logout } = useAuthStore();
   const [selectedMBTI, setSelectedMBTI] = useState("");
   const [saving, setSaving] = useState(false);
+  const [favorites, setFavorites] = useState<Movie[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -26,6 +31,24 @@ export default function ProfilePage() {
     }
     fetchUser();
   }, [isAuthenticated, router, fetchUser]);
+
+  const loadFavorites = useCallback(async () => {
+    setFavoritesLoading(true);
+    try {
+      const data = await getFavorites(1, 8);
+      setFavorites(data);
+    } catch {
+      setFavorites([]);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadFavorites();
+    }
+  }, [isAuthenticated, loadFavorites]);
 
   useEffect(() => {
     if (user?.mbti) {
@@ -54,19 +77,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen py-12 px-4 bg-dark-200">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Profile Header */}
-        <div className="bg-dark-100 rounded-lg p-8 mb-6">
+        <div className="bg-white border border-gray-100 rounded-lg p-8 mb-6 shadow-sm">
           <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 rounded-full bg-primary-600 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center">
               <span className="text-3xl font-bold text-white">
                 {user.nickname.charAt(0).toUpperCase()}
               </span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{user.nickname}</h1>
-              <p className="text-white/60">{user.email}</p>
+              <h1 className="text-2xl font-bold text-foreground">{user.nickname}</h1>
+              <p className="text-foreground/60">{user.email}</p>
               {user.mbti && (
                 <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm text-white ${getMBTIColor(user.mbti)}`}>
                   {user.mbti}
@@ -77,9 +100,9 @@ export default function ProfilePage() {
         </div>
 
         {/* MBTI Selection */}
-        <div className="bg-dark-100 rounded-lg p-8 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4">MBTI 설정</h2>
-          <p className="text-white/60 mb-6">
+        <div className="bg-white border border-gray-100 rounded-lg p-8 mb-6 shadow-sm">
+          <h2 className="text-xl font-bold text-foreground mb-4">MBTI 설정</h2>
+          <p className="text-foreground/60 mb-6">
             MBTI를 설정하면 성격에 맞는 영화를 추천받을 수 있어요.
           </p>
 
@@ -92,7 +115,7 @@ export default function ProfilePage() {
                 className={`py-3 rounded-lg font-medium transition ${
                   selectedMBTI === mbti
                     ? `${getMBTIColor(mbti)} text-white`
-                    : "bg-dark-200 text-white/60 hover:bg-dark-200/70"
+                    : "bg-gray-100 text-foreground/60 hover:bg-gray-200"
                 }`}
               >
                 {mbti}
@@ -105,15 +128,76 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {/* 찜한 영화 */}
+        <div className="bg-white border border-gray-100 rounded-lg p-8 mb-6 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-bold text-foreground">찜한 영화</h2>
+            <Link
+              href="/favorites"
+              className="text-sm text-primary-500 hover:text-primary-600 transition"
+            >
+              전체보기 →
+            </Link>
+          </div>
+
+          {favoritesLoading ? (
+            <div className="flex space-x-3 overflow-hidden">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-24">
+                  <div className="w-24 h-36 rounded-lg bg-gray-200 animate-pulse" />
+                  <div className="mt-2 h-3 bg-gray-200 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : favorites.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-foreground/40">
+              <span className="text-4xl mb-3">🎬</span>
+              <p className="text-sm">아직 찜한 영화가 없어요</p>
+            </div>
+          ) : (
+            <div className="flex space-x-3 overflow-x-auto hide-scrollbar pb-1">
+              {favorites.map((movie) => {
+                const title = movie.title_ko || movie.title;
+                return (
+                  <Link
+                    key={movie.id}
+                    href={`/movies/${movie.id}`}
+                    className="flex-shrink-0 w-24 group"
+                  >
+                    <div className="relative w-24 h-36 rounded-lg overflow-hidden bg-gray-100">
+                      {movie.poster_path ? (
+                        <Image
+                          src={getImageUrl(movie.poster_path, "w185")}
+                          alt={title}
+                          fill
+                          className="object-cover transition-transform duration-200 group-hover:scale-105"
+                          sizes="96px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-2xl text-foreground/20">🎬</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-xs text-foreground/70 truncate group-hover:text-primary-500 transition">
+                      {title}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Account Actions */}
-        <div className="bg-dark-100 rounded-lg p-8">
-          <h2 className="text-xl font-bold text-white mb-4">계정</h2>
+        <div className="bg-white border border-gray-100 rounded-lg p-8 shadow-sm">
+          <h2 className="text-xl font-bold text-foreground mb-4">계정</h2>
           <button
             onClick={() => {
               logout();
               router.push("/");
             }}
-            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-md transition"
+            className="px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-md transition"
           >
             로그아웃
           </button>

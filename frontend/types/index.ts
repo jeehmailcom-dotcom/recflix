@@ -40,7 +40,7 @@ export interface Person {
 
 // Recommendation types
 export interface RecommendationTag {
-  type: "mbti" | "weather" | "personal" | "popular" | "rating";
+  type: "mbti" | "weather" | "mood" | "personal" | "popular" | "rating";
   label: string;
   score?: number;
 }
@@ -148,7 +148,7 @@ export type MBTIType =
   | "ISTP" | "ISFP" | "ESTP" | "ESFP";
 
 // Mood types
-export type MoodType = "calm" | "energetic" | "gloomy" | "stifled" | "soft" | "tense" | "empty" | "joyful";
+export type MoodType = "comfortable" | "tense" | "exciting" | "emotional" | "fantasy" | "light";
 
 // LLM types
 export interface CatchphraseResponse {

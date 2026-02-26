@@ -79,28 +79,28 @@ export default function HybridMovieRow({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative group"
+      className="relative group/row"
     >
       {/* Header with gradient background - 한 줄 배치 */}
-      <div className="mb-4 p-4 rounded-lg bg-gradient-to-r from-primary-600/20 to-purple-600/20 border border-primary-500/30">
+      <div className="mb-4 p-4 rounded-lg bg-gradient-to-r from-primary-600/20 to-secondary-600/20 border border-primary-500/30">
         <div className="flex items-center gap-3">
           <div className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-primary-400" />
-            <h2 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">{title}</h2>
+            <Sparkles className="w-5 h-5 text-primary-500" />
+            <h2 className="text-xl md:text-2xl font-extrabold text-foreground tracking-tight">{title}</h2>
           </div>
           {description && (
-            <p className="text-sm text-gray-400">{description}</p>
+            <p className="text-sm text-foreground/50">{description}</p>
           )}
           {/* Refresh Button */}
           {movies.length > displayCount && (
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="ml-auto p-1.5 rounded-full hover:bg-white/10 transition-colors group/refresh"
+              className="ml-auto p-1.5 rounded-full hover:bg-foreground/10 transition-colors group/refresh"
               title="다른 영화 보기"
             >
               <RefreshCw
-                className={`w-4 h-4 text-gray-400 group-hover/refresh:text-white transition-colors ${
+                className={`w-4 h-4 text-foreground/40 group-hover/refresh:text-foreground transition-colors ${
                   isRefreshing ? "animate-spin" : ""
                 }`}
               />
@@ -115,7 +115,7 @@ export default function HybridMovieRow({
         {showLeftArrow && (
           <button
             onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity"
           >
             <ChevronLeft className="w-6 h-6 text-white" />
           </button>
@@ -125,7 +125,7 @@ export default function HybridMovieRow({
         {showRightArrow && (
           <button
             onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity"
           >
             <ChevronRight className="w-6 h-6 text-white" />
           </button>

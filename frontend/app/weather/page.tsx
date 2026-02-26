@@ -15,29 +15,29 @@ const weatherConfig: Record<WeatherType, { icon: ReactNode; label: string; desc:
     icon: <Sun className="w-8 h-8" />,
     label: "맑음",
     desc: "화창한 날엔 활기찬 영화",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/20 border-yellow-500/50",
+    color: "text-yellow-500",
+    bg: "bg-yellow-500/15 border-yellow-500/40",
   },
   rainy: {
     icon: <CloudRain className="w-8 h-8" />,
     label: "비",
     desc: "빗소리와 함께하는 감성 영화",
-    color: "text-blue-400",
-    bg: "bg-blue-500/20 border-blue-500/50",
+    color: "text-blue-500",
+    bg: "bg-blue-500/15 border-blue-500/40",
   },
   cloudy: {
     icon: <Cloud className="w-8 h-8" />,
     label: "흐림",
     desc: "잔잔하고 깊이 있는 영화",
-    color: "text-gray-400",
-    bg: "bg-gray-500/20 border-gray-500/50",
+    color: "text-gray-500",
+    bg: "bg-gray-500/15 border-gray-500/40",
   },
   snowy: {
     icon: <CloudSnow className="w-8 h-8" />,
     label: "눈",
     desc: "겨울 감성 가득한 영화",
-    color: "text-cyan-300",
-    bg: "bg-cyan-500/20 border-cyan-500/50",
+    color: "text-cyan-500",
+    bg: "bg-cyan-500/15 border-cyan-500/40",
   },
 };
 
@@ -79,10 +79,10 @@ export default function WeatherPage() {
     <div className="min-h-screen pb-24 md:pb-20">
       {/* Header */}
       <div className="px-4 md:px-8 lg:px-12 pt-8 pb-6">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
           오늘 날씨엔 어떤 영화가 좋을까요?
         </h1>
-        <p className="text-white/60">
+        <p className="text-foreground/60">
           날씨에 따라 달라지는 영화 추천 — 실시간 날씨가 자동으로 반영돼요
         </p>
       </div>
@@ -99,8 +99,8 @@ export default function WeatherPage() {
                 onClick={() => setManualWeather(w)}
                 className={`flex flex-col items-center gap-2 p-5 rounded-2xl border transition-all duration-200 ${
                   isSelected
-                    ? `${c.bg} ${c.color} scale-105 shadow-lg`
-                    : "bg-dark-100/60 border-white/10 hover:border-white/30 hover:bg-dark-100 text-white/70"
+                    ? "bg-secondary-500 text-white border-secondary-500 scale-105 shadow-lg shadow-secondary-500/30"
+                    : "bg-foreground/5 border-foreground/10 hover:border-secondary-400/50 hover:bg-secondary-500/10 text-foreground/70"
                 }`}
               >
                 {c.icon}
@@ -114,7 +114,7 @@ export default function WeatherPage() {
         </div>
 
         {/* Current weather info + reset */}
-        <div className="flex items-center gap-3 mt-4 text-sm text-white/50">
+        <div className="flex items-center gap-3 mt-4 text-sm text-foreground/50">
           {weather?.temperature != null && (
             <span className={`font-medium ${cfg.color}`}>
               {cfg.icon && <span className="inline-block mr-1 align-middle scale-75">{cfg.icon}</span>}
@@ -124,7 +124,7 @@ export default function WeatherPage() {
           {isManual && (
             <button
               onClick={resetToRealWeather}
-              className="flex items-center gap-1 hover:text-white transition"
+              className="flex items-center gap-1 hover:text-foreground transition"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               실시간 날씨로 복귀

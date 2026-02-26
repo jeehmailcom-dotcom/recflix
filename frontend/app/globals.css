@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #141414;
-  --foreground: #ffffff;
+  --background: #FAFAF8;
+  --foreground: #1A1A2E;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-dm-sans), var(--font-noto-sans-kr), sans-serif;
 }
 
 /* Custom scrollbar */
@@ -20,16 +20,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: #eeeeec;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #404040;
+  background: #c0bfbb;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #505050;
+  background: #a09e9a;
 }
 
 /* Hide scrollbar for movie rows */
@@ -81,21 +81,21 @@ body {
   --theme-accent: #d0e4ed;
 }
 
-/* Weather theme body background effect */
+/* Weather theme body background effect — light tints */
 body.theme-sunny {
-  background: linear-gradient(180deg, #1a1510 0%, #141414 15%, #141414 100%);
+  background: linear-gradient(180deg, #fffdf0 0%, #FAFAF8 15%, #FAFAF8 100%);
 }
 
 body.theme-rainy {
-  background: linear-gradient(180deg, #0f1318 0%, #141414 15%, #141414 100%);
+  background: linear-gradient(180deg, #f0f4fa 0%, #FAFAF8 15%, #FAFAF8 100%);
 }
 
 body.theme-cloudy {
-  background: linear-gradient(180deg, #151617 0%, #141414 15%, #141414 100%);
+  background: linear-gradient(180deg, #f2f3f4 0%, #FAFAF8 15%, #FAFAF8 100%);
 }
 
 body.theme-snowy {
-  background: linear-gradient(180deg, #141820 0%, #141414 15%, #141414 100%);
+  background: linear-gradient(180deg, #f0f6fb 0%, #FAFAF8 15%, #FAFAF8 100%);
 }
 
 /* Theme transition */
@@ -177,7 +177,7 @@ body {
 
 /* Focus visible for accessibility */
 :focus-visible {
-  outline: 2px solid #e50914;
+  outline: 2px solid #DA7756;
   outline-offset: 2px;
 }
 
@@ -199,9 +199,9 @@ body {
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 255, 255, 0) 100%
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.04) 50%,
+    rgba(0, 0, 0, 0) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;

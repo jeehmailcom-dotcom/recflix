@@ -124,7 +124,7 @@ export default function HomePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
+          <p className="text-primary-500 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition"

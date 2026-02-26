@@ -57,19 +57,19 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-dark-200">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="text-4xl font-bold text-primary-500">
             RecFlix
           </Link>
-          <p className="text-white/60 mt-2">맞춤형 영화 추천 플랫폼</p>
+          <p className="text-foreground/60 mt-2">맞춤형 영화 추천 플랫폼</p>
         </div>
 
         {/* Signup Form */}
-        <div className="bg-dark-100 rounded-lg p-8">
-          <h1 className="text-2xl font-bold text-white mb-6">회원가입</h1>
+        <div className="bg-white border border-gray-100 rounded-lg p-8 shadow-sm">
+          <h1 className="text-2xl font-bold text-foreground mb-6">회원가입</h1>
 
           {error && (
             <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-sm">
@@ -79,7 +79,7 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">
+              <label className="block text-sm font-medium text-foreground/80 mb-1.5">
                 이메일 *
               </label>
               <input
@@ -87,14 +87,14 @@ export default function SignupPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-dark-200 border border-white/10 rounded-md text-white placeholder-white/40 focus:outline-none focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-md text-foreground placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
                 placeholder="your@email.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">
+              <label className="block text-sm font-medium text-foreground/80 mb-1.5">
                 닉네임 *
               </label>
               <input
@@ -102,14 +102,14 @@ export default function SignupPage() {
                 name="nickname"
                 value={formData.nickname}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-dark-200 border border-white/10 rounded-md text-white placeholder-white/40 focus:outline-none focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-md text-foreground placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
                 placeholder="닉네임을 입력하세요"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">
+              <label className="block text-sm font-medium text-foreground/80 mb-1.5">
                 비밀번호 *
               </label>
               <input
@@ -117,14 +117,14 @@ export default function SignupPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-dark-200 border border-white/10 rounded-md text-white placeholder-white/40 focus:outline-none focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-md text-foreground placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
                 placeholder="6자 이상"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">
+              <label className="block text-sm font-medium text-foreground/80 mb-1.5">
                 비밀번호 확인 *
               </label>
               <input
@@ -132,21 +132,21 @@ export default function SignupPage() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-dark-200 border border-white/10 rounded-md text-white placeholder-white/40 focus:outline-none focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-md text-foreground placeholder-gray-400 focus:outline-none focus:border-primary-500 transition"
                 placeholder="비밀번호를 다시 입력"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-1.5">
+              <label className="block text-sm font-medium text-foreground/80 mb-1.5">
                 MBTI (선택)
               </label>
               <select
                 name="mbti"
                 value={formData.mbti}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-dark-200 border border-white/10 rounded-md text-white focus:outline-none focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-md text-foreground focus:outline-none focus:border-primary-500 transition"
               >
                 <option value="">선택 안함</option>
                 {MBTI_TYPES.map((type) => (
@@ -155,7 +155,7 @@ export default function SignupPage() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-white/40 mt-1">
+              <p className="text-xs text-foreground/40 mt-1">
                 MBTI를 입력하면 더 정확한 추천을 받을 수 있어요!
               </p>
             </div>
@@ -163,15 +163,15 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-800 disabled:cursor-not-allowed text-white font-medium rounded-md transition"
+              className="w-full py-3 bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 disabled:cursor-not-allowed text-white font-medium rounded-md transition"
             >
               {isLoading ? "가입 중..." : "회원가입"}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-white/60">
+          <div className="mt-6 text-center text-foreground/60">
             이미 계정이 있으신가요?{" "}
-            <Link href="/login" className="text-primary-500 hover:text-primary-400 transition">
+            <Link href="/login" className="text-primary-500 hover:text-primary-600 transition">
               로그인
             </Link>
           </div>
