@@ -56,3 +56,15 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+
+@app.get("/debug/cache")
+async def cache_stats():
+    """Temporary: cache key stats for debugging"""
+    import time
+    from app.services.recommendation import _CACHE
+    now = time.time()
+    return {
+        k: {"ttl_remaining": round(v[1] - now, 1), "type": type(v[0]).__name__, "len": len(v[0]) if hasattr(v[0], "__len__") else "n/a"}
+        for k, v in _CACHE.items()
+    }

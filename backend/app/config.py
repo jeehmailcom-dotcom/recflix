@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
+    # DB_URL takes precedence over DATABASE_URL (to bypass Railway plugin auto-inject)
+    DB_URL: Optional[str] = None
     DATABASE_URL: Optional[str] = None
 
     # Redis - supports both REDIS_URL (Railway) and individual settings

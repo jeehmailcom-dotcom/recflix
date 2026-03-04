@@ -5,7 +5,7 @@ import { Sun, CloudRain, Cloud, CloudSnow, RotateCcw } from "lucide-react";
 import MovieRow from "@/components/movie/MovieRow";
 import HybridMovieRow from "@/components/movie/HybridMovieRow";
 import { MovieRowSkeleton } from "@/components/ui/Skeleton";
-import { getHomeRecommendations } from "@/lib/api";
+import { getWeatherPageRecommendations } from "@/lib/api";
 import { useWeather } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
 import type { HomeRecommendations, WeatherType } from "@/types";
@@ -58,19 +58,22 @@ export default function WeatherPage() {
   const selectedWeather = weather?.condition ?? "sunny";
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetch = async () => {
       setLoading(true);
       try {
-        const data = await getHomeRecommendations(selectedWeather);
-        setRecommendations(data);
+        const data = await getWeatherPageRecommendations(selectedWeather, null, !isAuthenticated ? "ENFP" : undefined);
+        if (!cancelled) setRecommendations(data);
       } catch (err) {
-        console.error(err);
+        if (!cancelled) console.error(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetch();
+    return () => { cancelled = true; };
   }, [selectedWeather, isAuthenticated]);
 
   const cfg = weatherConfig[selectedWeather];
@@ -78,7 +81,7 @@ export default function WeatherPage() {
   return (
     <div className="min-h-screen pb-24 md:pb-20">
       {/* Header */}
-      <div className="px-4 md:px-8 lg:px-12 pt-8 pb-6">
+      <div className="px-4 md:px-8 lg:px-12 pt-8 pb-6 text-center">
         <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
           오늘 날씨엔 어떤 영화가 좋을까요?
         </h1>
@@ -88,8 +91,8 @@ export default function WeatherPage() {
       </div>
 
       {/* Weather Selector */}
-      <div className="px-4 md:px-8 lg:px-12 mb-10">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
+      <div className="px-4 md:px-8 lg:px-12 mb-10 flex flex-col items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl w-full">
           {WEATHER_TYPES.map((w) => {
             const c = weatherConfig[w];
             const isSelected = selectedWeather === w;
@@ -114,7 +117,7 @@ export default function WeatherPage() {
         </div>
 
         {/* Current weather info + reset */}
-        <div className="flex items-center gap-3 mt-4 text-sm text-foreground/50">
+        <div className="flex items-center justify-center gap-3 mt-4 text-sm text-foreground/50">
           {weather?.temperature != null && (
             <span className={`font-medium ${cfg.color}`}>
               {cfg.icon && <span className="inline-block mr-1 align-middle scale-75">{cfg.icon}</span>}
@@ -151,7 +154,12 @@ export default function WeatherPage() {
                 movies={recommendations.hybrid_row.movies}
               />
             )}
-            {recommendations.rows.map((row, i) => (
+            {(!isAuthenticated
+              ? recommendations.rows.filter(row =>
+                  !row.title.startsWith("🎭") && !row.title.startsWith("💫")
+                )
+              : recommendations.rows
+            ).map((row, i) => (
               <MovieRow
                 key={`${row.title}-${i}`}
                 title={row.title}

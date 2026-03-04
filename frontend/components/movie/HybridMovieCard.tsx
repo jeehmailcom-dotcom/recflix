@@ -20,7 +20,7 @@ function RecommendationTagBadge({ tag }: { tag: RecommendationTag }) {
   const colorClass =
     tag.type === "mbti"     ? "bg-primary-500 text-white" :
     tag.type === "weather"  ? "bg-secondary-500 text-white" :
-    tag.type === "mood"     ? "bg-emerald-100 text-emerald-700" :
+    tag.type === "mood"     ? "bg-emerald-500 text-white" :
     tag.type === "personal" ? "bg-secondary-400 text-white" :
     tag.type === "rating"   ? "bg-yellow-500 text-white" :
     tag.type === "popular"  ? "bg-orange-500 text-white" :

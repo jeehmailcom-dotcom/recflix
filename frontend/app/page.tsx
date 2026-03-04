@@ -70,7 +70,7 @@ export default function HomePage() {
       setLoading(true);
       setRecommendations(null);
       try {
-        const data = await getHomeRecommendations(weatherCondition, mood);
+        const data = await getHomeRecommendations(weatherCondition, mood, !isAuthenticated ? "ENFP" : undefined);
         setRecommendations(data);
         setError(null);
       } catch (err) {
@@ -185,14 +185,20 @@ export default function HomePage() {
         )}
 
         {/* Regular Recommendation Rows */}
-        {recommendations?.rows.map((row, index) => (
-          <MovieRow
-            key={`${row.title}-${index}`}
-            title={row.title}
-            description={row.description}
-            movies={row.movies}
-          />
-        ))}
+        {recommendations?.rows.filter(row => !row.title.startsWith("🔀") && !row.title.startsWith("🎭")).map((row, index) => {
+          const title =
+            !isAuthenticated && row.title.startsWith("💫") ? "💫 지금 기분 추천" :
+            !isAuthenticated && row.title.startsWith("🌤️") ? "🌤️ 지금 날씨 추천" :
+            row.title;
+          return (
+            <MovieRow
+              key={`${row.title}-${index}`}
+              title={title}
+              description={row.description}
+              movies={row.movies}
+            />
+          );
+        })}
       </div>
     </div>
   );

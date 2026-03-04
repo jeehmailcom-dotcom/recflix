@@ -112,10 +112,10 @@ export default function ProfilePage() {
                 key={mbti}
                 onClick={() => handleMBTIChange(mbti)}
                 disabled={saving}
-                className={`py-3 rounded-lg font-medium transition ${
+                className={`py-3 px-2 rounded-xl border font-medium transition-all duration-200 ${
                   selectedMBTI === mbti
-                    ? `${getMBTIColor(mbti)} text-white`
-                    : "bg-gray-100 text-foreground/60 hover:bg-gray-200"
+                    ? "bg-primary-500 border-primary-500 text-white scale-105 shadow-lg"
+                    : "bg-white border-gray-200 hover:border-secondary-300 hover:bg-secondary-50 text-foreground/70"
                 }`}
               >
                 {mbti}

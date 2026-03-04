@@ -47,30 +47,34 @@ export default function MBTIPage() {
     }
   }, [user?.mbti]);
 
-  // 추천 로드 (MBTI 선택 시 서버가 토큰에서 MBTI를 읽으므로 파라미터 불필요)
+  // 날씨·인증 변경 시 자동 리로드 (selectedMBTI 제외: handleMBTISelect에서 직접 fetch)
   useEffect(() => {
-    if (!selectedMBTI) return;
+    // 비로그인 시 ENFP 기본값, 로그인 시 선택된 MBTI 없으면 스킵
+    const effectiveMBTI = selectedMBTI || (!isAuthenticated ? "ENFP" : null);
+    if (!effectiveMBTI) return;
+    let cancelled = false;
 
     const fetch = async () => {
       setLoading(true);
       try {
-        const data = await getHomeRecommendations(weatherCondition);
-        setRecommendations(data);
+        const data = await getHomeRecommendations(weatherCondition, null, effectiveMBTI);
+        if (!cancelled) setRecommendations(data);
       } catch (err) {
-        console.error(err);
+        if (!cancelled) console.error(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetch();
-  }, [selectedMBTI, weatherCondition, isAuthenticated]);
+    return () => { cancelled = true; };
+  }, [weatherCondition, isAuthenticated]); // selectedMBTI 제외: handleMBTISelect에서 관리
 
   const handleMBTISelect = async (mbti: MBTIType) => {
     setSelectedMBTI(mbti);
     setRecommendations(null);
 
-    // 로그인 상태면 서버에 저장
+    // 로그인 상태면 서버에 저장 (먼저 저장 완료 후 fetch)
     if (isAuthenticated) {
       setSaving(true);
       try {
@@ -80,6 +84,17 @@ export default function MBTIPage() {
       } finally {
         setSaving(false);
       }
+    }
+
+    // 저장 완료 후 fetch (race condition 방지 + selectedMBTI 직접 전달)
+    setLoading(true);
+    try {
+      const data = await getHomeRecommendations(weatherCondition, null, mbti);
+      setRecommendations(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,7 +128,7 @@ export default function MBTIPage() {
       <div className="px-4 md:px-8 lg:px-12 mb-10">
         <div className="grid grid-cols-4 gap-2 max-w-xl mx-auto">
           {MBTI_TYPES.map((mbti) => {
-            const isSelected = selectedMBTI === mbti;
+            const isSelected = selectedMBTI === mbti || (!isAuthenticated && selectedMBTI === null && mbti === "ENFP");
             return (
               <button
                 key={mbti}
@@ -137,11 +152,6 @@ export default function MBTIPage() {
         {saving && (
           <p className="text-primary-400 text-sm mt-3">저장 중...</p>
         )}
-        {isAuthenticated && selectedMBTI && !saving && (
-          <p className="text-green-600 text-sm mt-3">
-            ✓ {selectedMBTI} 저장됨
-          </p>
-        )}
       </div>
 
       {/* Results */}
@@ -153,7 +163,7 @@ export default function MBTIPage() {
           </>
         )}
 
-        {!loading && selectedMBTI && recommendations && (
+        {!loading && recommendations && (selectedMBTI || !isAuthenticated) && (
           <>
             {recommendations.hybrid_row && (
               <HybridMovieRow
@@ -162,7 +172,15 @@ export default function MBTIPage() {
                 movies={recommendations.hybrid_row.movies}
               />
             )}
-            {recommendations.rows.map((row, i) => (
+            {(!isAuthenticated
+              ? recommendations.rows.filter(row =>
+                  row.title.startsWith("🎭") ||
+                  row.title.startsWith("🔀") ||
+                  row.title.startsWith("🔥") ||
+                  row.title.startsWith("⭐")
+                )
+              : recommendations.rows
+            ).map((row, i) => (
               <MovieRow
                 key={`${row.title}-${i}`}
                 title={row.title}
@@ -173,7 +191,7 @@ export default function MBTIPage() {
           </>
         )}
 
-        {!selectedMBTI && (
+        {!selectedMBTI && isAuthenticated && (
           <div className="flex flex-col items-center justify-center py-20 text-foreground/40">
             <span className="text-6xl mb-4">🧠</span>
             <p className="text-lg">MBTI를 선택하면 추천이 시작됩니다</p>

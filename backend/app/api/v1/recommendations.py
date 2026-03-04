@@ -18,6 +18,8 @@ from app.services.recommendation import (
     get_similar_movie_ids,
     calculate_hybrid_scores,
     build_home_recommendations,
+    build_weather_page_recommendations,
+    build_mood_page_recommendations,
 )
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
@@ -27,11 +29,36 @@ router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
 def get_home_recommendations(
     weather: Optional[str] = Query(None, pattern="^(sunny|rainy|cloudy|snowy)$"),
     mood: Optional[str] = Query(None, pattern="^(comfortable|tense|exciting|emotional|fantasy|light)$"),
+    mbti: Optional[str] = Query(None, pattern="^(INTJ|INTP|ENTJ|ENTP|INFJ|INFP|ENFJ|ENFP|ISTJ|ISFJ|ESTJ|ESFJ|ISTP|ISFP|ESTP|ESFP)$"),
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ):
     """Get home page recommendations with hybrid scoring"""
-    return build_home_recommendations(db, current_user, weather, mood)
+    return build_home_recommendations(db, current_user, weather, mood, mbti_override=mbti)
+
+
+@router.get("/mood-page", response_model=HomeRecommendations)
+def get_mood_page_recommendations(
+    mood: str = Query("tense", pattern="^(comfortable|tense|exciting|emotional|fantasy|light)$"),
+    weather: str = Query("sunny", pattern="^(sunny|rainy|cloudy|snowy)$"),
+    mbti: Optional[str] = Query(None, pattern="^(INTJ|INTP|ENTJ|ENTP|INFJ|INFP|ENFJ|ENFP|ISTJ|ISFJ|ESTJ|ESFJ|ISTP|ISFP|ESTP|ESFP)$"),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    """무드 페이지 전용 추천 (기분·다음기분·기분+MBTI·기분+날씨 섹션)"""
+    return build_mood_page_recommendations(db, current_user, mood, weather, mbti_override=mbti)
+
+
+@router.get("/weather-page", response_model=HomeRecommendations)
+def get_weather_page_recommendations(
+    weather: str = Query("sunny", pattern="^(sunny|rainy|cloudy|snowy)$"),
+    mood: Optional[str] = Query(None, pattern="^(comfortable|tense|exciting|emotional|fantasy|light)$"),
+    mbti: Optional[str] = Query(None, pattern="^(INTJ|INTP|ENTJ|ENTP|INFJ|INFP|ENFJ|ENFP|ISTJ|ISFJ|ESTJ|ESFJ|ISTP|ISFP|ESTP|ESFP)$"),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db),
+):
+    """날씨 페이지 전용 추천 (날씨·반대날씨·날씨+MBTI·날씨+기분 섹션)"""
+    return build_weather_page_recommendations(db, current_user, weather, mood, mbti_override=mbti)
 
 
 @router.get("/hybrid", response_model=List[HybridMovieItem])

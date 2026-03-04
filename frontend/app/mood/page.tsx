@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import MovieRow from "@/components/movie/MovieRow";
 import HybridMovieRow from "@/components/movie/HybridMovieRow";
 import { MovieRowSkeleton } from "@/components/ui/Skeleton";
-import { getHomeRecommendations } from "@/lib/api";
+import { getMoodPageRecommendations, getHomeRecommendations } from "@/lib/api";
 import { useWeather } from "@/hooks/useWeather";
 import { useAuthStore } from "@/stores/authStore";
 import type { HomeRecommendations, MoodType } from "@/types";
@@ -31,21 +31,34 @@ export default function MoodPage() {
   const weatherCondition = weather?.condition ?? "sunny";
 
   useEffect(() => {
-    if (!selectedMood) return;
+    let cancelled = false;
 
     const fetch = async () => {
       setLoading(true);
       try {
-        const data = await getHomeRecommendations(weatherCondition, selectedMood);
-        setRecommendations(data);
+        const data = await getMoodPageRecommendations(selectedMood || "tense", weatherCondition, isAuthenticated ? undefined : "ENFP");
+        // 비로그인 시 hybrid_row 없으면 getHomeRecommendations에서 가져옴
+        let finalData = data;
+        if (!isAuthenticated && !data.hybrid_row) {
+          try {
+            const homeData = await getHomeRecommendations(weatherCondition, selectedMood || "tense", "ENFP");
+            if (homeData.hybrid_row) {
+              finalData = { ...data, hybrid_row: homeData.hybrid_row };
+            }
+          } catch {
+            // fallback 실패 시 그냥 진행
+          }
+        }
+        if (!cancelled) setRecommendations(finalData);
       } catch (err) {
-        console.error(err);
+        if (!cancelled) console.error(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetch();
+    return () => { cancelled = true; };
   }, [selectedMood, weatherCondition, isAuthenticated]);
 
   const handleMoodSelect = (mood: MoodType) => {
@@ -56,7 +69,7 @@ export default function MoodPage() {
   return (
     <div className="min-h-screen pb-24 md:pb-20">
       {/* Header */}
-      <div className="px-4 md:px-8 lg:px-12 pt-8 pb-6">
+      <div className="px-4 md:px-8 lg:px-12 pt-8 pb-6 text-center">
         <h1 className="text-3xl md:text-4xl font-extrabold text-foreground mb-2">
           지금 기분이 어떠세요?
         </h1>
@@ -66,11 +79,11 @@ export default function MoodPage() {
       </div>
 
       {/* Mood Grid */}
-      <div className="px-4 md:px-8 lg:px-12 mb-10">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-3xl">
+      <div className="px-4 md:px-8 lg:px-12 mb-10 flex justify-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-3xl w-full">
           {[...moodRow1, ...moodRow2].map((mood) => {
             const cfg = moodConfig[mood];
-            const isSelected = selectedMood === mood;
+            const isSelected = selectedMood === mood || (selectedMood === null && mood === "tense");
             return (
               <button
                 key={mood}
@@ -103,7 +116,7 @@ export default function MoodPage() {
           </>
         )}
 
-        {!loading && selectedMood && recommendations && (
+        {!loading && recommendations && (
           <>
             {recommendations.hybrid_row && (
               <HybridMovieRow
@@ -112,7 +125,18 @@ export default function MoodPage() {
                 movies={recommendations.hybrid_row.movies}
               />
             )}
-            {recommendations.rows.map((row, i) => (
+            {(!isAuthenticated
+              ? recommendations.rows
+                  .filter(row =>
+                    !row.title.startsWith("🎭") && !row.title.startsWith("💫") && !row.title.startsWith("🌤️")
+                  )
+                  .map((row, i) =>
+                    i === 0
+                      ? { ...row, title: "🎬 지금 기분 추천", description: "지금 기분에 딱 맞는 영화를 골랐어요" }
+                      : row
+                  )
+              : recommendations.rows
+            ).map((row, i) => (
               <MovieRow
                 key={`${row.title}-${i}`}
                 title={row.title}
@@ -121,13 +145,6 @@ export default function MoodPage() {
               />
             ))}
           </>
-        )}
-
-        {!selectedMood && (
-          <div className="flex flex-col items-center justify-center py-20 text-foreground/40">
-            <span className="text-6xl mb-4">🎬</span>
-            <p className="text-lg">기분을 선택하면 추천이 시작됩니다</p>
-          </div>
         )}
       </div>
     </div>

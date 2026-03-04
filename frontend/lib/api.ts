@@ -77,12 +77,26 @@ export async function getGenres(): Promise<Genre[]> {
 }
 
 // Recommendation APIs
-export async function getHomeRecommendations(weather?: string, mood?: string | null): Promise<HomeRecommendations> {
+export async function getHomeRecommendations(weather?: string, mood?: string | null, mbti?: string | null): Promise<HomeRecommendations> {
   const searchParams = new URLSearchParams();
   if (weather) searchParams.set("weather", weather);
   if (mood) searchParams.set("mood", mood);
+  if (mbti) searchParams.set("mbti", mbti);
   const query = searchParams.toString();
   return fetchAPI<HomeRecommendations>(`/recommendations${query ? `?${query}` : ""}`);
+}
+
+export async function getMoodPageRecommendations(mood: string, weather?: string, mbti?: string | null): Promise<HomeRecommendations> {
+  const searchParams = new URLSearchParams({ mood, weather: weather ?? "sunny" });
+  if (mbti) searchParams.set("mbti", mbti);
+  return fetchAPI<HomeRecommendations>(`/recommendations/mood-page?${searchParams.toString()}`);
+}
+
+export async function getWeatherPageRecommendations(weather: string, mood?: string | null, mbti?: string | null): Promise<HomeRecommendations> {
+  const searchParams = new URLSearchParams({ weather });
+  if (mood) searchParams.set("mood", mood);
+  if (mbti) searchParams.set("mbti", mbti);
+  return fetchAPI<HomeRecommendations>(`/recommendations/weather-page?${searchParams.toString()}`);
 }
 
 export async function getMBTIRecommendations(mbti: string, limit = 20): Promise<Movie[]> {
