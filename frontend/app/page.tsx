@@ -73,6 +73,7 @@ export default function HomePage() {
       setLoading(true);
       setRecommendations(null);
       try {
+        console.log("홈 추천 호출:", weatherCondition, selectedMood, selectedMbti);
         const data = await getHomeRecommendations(weatherCondition, selectedMood, !isAuthenticated ? "ENFP" : (selectedMbti ?? undefined));
         setRecommendations(data);
         setError(null);
