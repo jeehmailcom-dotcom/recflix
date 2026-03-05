@@ -69,23 +69,30 @@ export default function HomePage() {
 
   // Fetch recommendations when weather, mood, or auth state changes
   useEffect(() => {
+    let cancelled = false;
+
     const fetchRecommendations = async () => {
       setLoading(true);
       setRecommendations(null);
       try {
         console.log("홈 추천 호출:", weatherCondition, selectedMood, selectedMbti);
         const data = await getHomeRecommendations(weatherCondition, selectedMood, !isAuthenticated ? "ENFP" : (selectedMbti ?? undefined));
-        setRecommendations(data);
-        setError(null);
+        if (!cancelled) {
+          setRecommendations(data);
+          setError(null);
+        }
       } catch (err) {
-        setError("Failed to load recommendations");
-        console.error(err);
+        if (!cancelled) {
+          setError("Failed to load recommendations");
+          console.error(err);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchRecommendations();
+    return () => { cancelled = true; };
   }, [weatherCondition, selectedMood, selectedMbti, isAuthenticated]);
 
   const handleWeatherChange = (condition: WeatherType) => {
