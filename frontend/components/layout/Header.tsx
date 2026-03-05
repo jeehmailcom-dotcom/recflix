@@ -49,10 +49,13 @@ export default function Header() {
   const weatherDropdownRef = useRef<HTMLDivElement>(null);
   const [moodDropdownOpen, setMoodDropdownOpen] = useState(false);
   const moodDropdownRef = useRef<HTMLDivElement>(null);
-  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
+  const [selectedMood, setSelectedMood] = useState<MoodType | null>("tense");
   const [mbtiDropdownOpen, setMbtiDropdownOpen] = useState(false);
   const mbtiDropdownRef = useRef<HTMLDivElement>(null);
-  const [selectedMbti, setSelectedMbti] = useState<string | null>(null);
+  const [selectedMbti, setSelectedMbti] = useState<string | null>(() => {
+    const state = useAuthStore.getState();
+    return state.isAuthenticated && state.user?.mbti ? state.user.mbti : "ENFP";
+  });
 
   const { weather, setManualWeather, resetToRealWeather } = useWeather({ autoFetch: true });
   const [geoGranted, setGeoGranted] = useState(false);
@@ -219,8 +222,8 @@ export default function Header() {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-primary-200 hover:border-primary-400 text-sm transition"
                 >
                   <span>🧠</span>
-                  <span className={`font-medium ${selectedMbti ? "text-amber-500" : "text-foreground/70"}`}>
-                    {selectedMbti ?? "MBTI"}
+                  <span className="font-medium text-amber-500">
+                    {selectedMbti ?? (isAuthenticated && user?.mbti ? user.mbti : "ENFP")}
                   </span>
                   <ChevronDown className={`w-3 h-3 text-foreground/40 transition-transform duration-200 ${mbtiDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
@@ -241,7 +244,7 @@ export default function Header() {
                             onClick={() => handleMbtiSelect(mbti)}
                             className={`px-2 py-1.5 rounded-lg text-xs font-medium transition ${
                               (selectedMbti ?? (isAuthenticated && user?.mbti ? user.mbti : "ENFP")) === mbti
-                                ? "bg-amber-400/20 text-amber-600 font-semibold"
+                                ? "bg-amber-500/10 text-amber-600 font-semibold"
                                 : "text-foreground/70 hover:bg-gray-50"
                             }`}
                           >
@@ -321,8 +324,8 @@ export default function Header() {
                   onClick={() => setMoodDropdownOpen(!moodDropdownOpen)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-primary-200 hover:border-primary-400 text-sm transition"
                 >
-                  <span>{selectedMood ? moodConfig[selectedMood].emoji : "😊"}</span>
-                  <span className="text-foreground/70">기분</span>
+                  <span>{moodConfig[selectedMood ?? "tense"].emoji}</span>
+                  <span className="text-foreground/70">{moodConfig[selectedMood ?? "tense"].label}</span>
                   <ChevronDown className={`w-3 h-3 text-foreground/40 transition-transform duration-200 ${moodDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 
