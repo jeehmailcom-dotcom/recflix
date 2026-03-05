@@ -6,6 +6,7 @@ import HybridMovieRow from "@/components/movie/HybridMovieRow";
 import { MovieRowSkeleton } from "@/components/ui/Skeleton";
 import { getMoodPageRecommendations, getHomeRecommendations } from "@/lib/api";
 import { useWeather } from "@/hooks/useWeather";
+import { useMood } from "@/hooks/useMood";
 import { useAuthStore } from "@/stores/authStore";
 import type { HomeRecommendations, MoodType } from "@/types";
 
@@ -22,7 +23,7 @@ const moodRow1: MoodType[] = ["comfortable", "tense", "exciting"];
 const moodRow2: MoodType[] = ["emotional", "fantasy", "light"];
 
 export default function MoodPage() {
-  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
+  const { selectedMood, setManualMood } = useMood();
   const [recommendations, setRecommendations] = useState<HomeRecommendations | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +63,7 @@ export default function MoodPage() {
   }, [selectedMood, weatherCondition, isAuthenticated]);
 
   const handleMoodSelect = (mood: MoodType) => {
-    setSelectedMood((prev) => (prev === mood ? null : mood));
+    setManualMood(selectedMood === mood ? null : mood);
     if (selectedMood !== mood) setRecommendations(null);
   };
 

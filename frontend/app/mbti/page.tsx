@@ -9,6 +9,7 @@ import { getHomeRecommendations } from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
 import { getMBTIColor } from "@/lib/utils";
 import { useWeather } from "@/hooks/useWeather";
+import { useMbti } from "@/hooks/useMbti";
 import type { HomeRecommendations, MBTIType } from "@/types";
 
 const MBTI_TYPES: MBTIType[] = [
@@ -34,18 +35,11 @@ export default function MBTIPage() {
   const { weather } = useWeather({ autoFetch: true });
   const weatherCondition = weather?.condition ?? "sunny";
 
-  // 로그인 시 유저 MBTI, 비로그인 시 임시 선택
-  const [selectedMBTI, setSelectedMBTI] = useState<MBTIType | null>(null);
+  const { selectedMbti, setManualMbti } = useMbti();
+  const selectedMBTI = selectedMbti as MBTIType | null;
   const [recommendations, setRecommendations] = useState<HomeRecommendations | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // 로그인 유저의 MBTI 초기값 적용
-  useEffect(() => {
-    if (user?.mbti) {
-      setSelectedMBTI(user.mbti as MBTIType);
-    }
-  }, [user?.mbti]);
 
   // 날씨·인증 변경 시 자동 리로드 (selectedMBTI 제외: handleMBTISelect에서 직접 fetch)
   useEffect(() => {
@@ -71,7 +65,7 @@ export default function MBTIPage() {
   }, [weatherCondition, isAuthenticated, selectedMBTI]);
 
   const handleMBTISelect = async (mbti: MBTIType) => {
-    setSelectedMBTI(mbti);
+    setManualMbti(mbti);
     setRecommendations(null);
 
     // 로그인 상태면 서버에 저장 (먼저 저장 완료 후 fetch)

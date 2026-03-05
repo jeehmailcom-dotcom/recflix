@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Search, Heart, Star, User, LogOut, Home, Brain, Cloud, Smile, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useWeather } from "@/hooks/useWeather";
+import { useMbti } from "@/hooks/useMbti";
+import { useMood } from "@/hooks/useMood";
 import type { WeatherType, MoodType } from "@/types";
 
 const weatherConfig: Record<WeatherType, { emoji: string; label: string }> = {
@@ -49,13 +51,11 @@ export default function Header() {
   const weatherDropdownRef = useRef<HTMLDivElement>(null);
   const [moodDropdownOpen, setMoodDropdownOpen] = useState(false);
   const moodDropdownRef = useRef<HTMLDivElement>(null);
-  const [selectedMood, setSelectedMood] = useState<MoodType | null>("tense");
   const [mbtiDropdownOpen, setMbtiDropdownOpen] = useState(false);
   const mbtiDropdownRef = useRef<HTMLDivElement>(null);
-  const [selectedMbti, setSelectedMbti] = useState<string | null>(() => {
-    const state = useAuthStore.getState();
-    return state.isAuthenticated && state.user?.mbti ? state.user.mbti : "ENFP";
-  });
+
+  const { selectedMbti, setManualMbti } = useMbti();
+  const { selectedMood, setManualMood } = useMood();
 
   const { weather, setManualWeather, resetToRealWeather } = useWeather({ autoFetch: true });
   const [geoGranted, setGeoGranted] = useState(false);
@@ -134,19 +134,13 @@ export default function Header() {
   }, [mbtiDropdownOpen]);
 
   const handleMbtiSelect = (mbti: string | null) => {
-    setSelectedMbti(mbti);
+    setManualMbti(mbti);
     setMbtiDropdownOpen(false);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("recflix-mbti-change", { detail: mbti }));
-    }
   };
 
   const handleMoodSelect = (mood: MoodType | null) => {
-    setSelectedMood(mood);
+    setManualMood(mood);
     setMoodDropdownOpen(false);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("recflix-mood-change", { detail: mood }));
-    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -223,7 +217,7 @@ export default function Header() {
                 >
                   <span>🧠</span>
                   <span className="font-medium text-amber-500">
-                    {selectedMbti ?? (isAuthenticated && user?.mbti ? user.mbti : "ENFP")}
+                    {selectedMbti ?? "ENFP"}
                   </span>
                   <ChevronDown className={`w-3 h-3 text-foreground/40 transition-transform duration-200 ${mbtiDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
@@ -243,7 +237,7 @@ export default function Header() {
                             key={mbti}
                             onClick={() => handleMbtiSelect(mbti)}
                             className={`px-2 py-1.5 rounded-lg text-xs font-medium transition ${
-                              (selectedMbti ?? (isAuthenticated && user?.mbti ? user.mbti : "ENFP")) === mbti
+                              (selectedMbti ?? "ENFP") === mbti
                                 ? "bg-amber-500/10 text-amber-600 font-semibold"
                                 : "text-foreground/70 hover:bg-gray-50"
                             }`}
@@ -324,8 +318,8 @@ export default function Header() {
                   onClick={() => setMoodDropdownOpen(!moodDropdownOpen)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-primary-200 hover:border-primary-400 text-sm transition"
                 >
-                  <span>{moodConfig[selectedMood ?? "tense"].emoji}</span>
-                  <span className="text-foreground/70">{moodConfig[selectedMood ?? "tense"].label}</span>
+                  <span>{moodConfig[selectedMood].emoji}</span>
+                  <span className="text-foreground/70">{moodConfig[selectedMood].label}</span>
                   <ChevronDown className={`w-3 h-3 text-foreground/40 transition-transform duration-200 ${moodDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 
@@ -343,7 +337,7 @@ export default function Header() {
                           key={m}
                           onClick={() => handleMoodSelect(m)}
                           className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition ${
-                            (selectedMood ?? "tense") === m
+                            selectedMood === m
                               ? "bg-emerald-500/10 text-emerald-700 font-medium"
                               : "text-foreground/70 hover:bg-gray-50"
                           }`}

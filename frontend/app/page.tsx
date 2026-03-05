@@ -7,6 +7,8 @@ import FeaturedBanner from "@/components/movie/FeaturedBanner";
 import { MovieRowSkeleton, FeaturedBannerSkeleton } from "@/components/ui/Skeleton";
 import { getHomeRecommendations } from "@/lib/api";
 import { useWeather } from "@/hooks/useWeather";
+import { useMood } from "@/hooks/useMood";
+import { useMbti } from "@/hooks/useMbti";
 import { useAuthStore } from "@/stores/authStore";
 import type { HomeRecommendations, WeatherType, Movie, Weather, MoodType } from "@/types";
 
@@ -14,7 +16,8 @@ export default function HomePage() {
   const [recommendations, setRecommendations] = useState<HomeRecommendations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mood, setMood] = useState<MoodType | null>(null);
+  const { selectedMood, setManualMood } = useMood();
+  const { selectedMbti } = useMbti();
 
   const { isAuthenticated, user } = useAuthStore();
   const prevAuthRef = useRef(isAuthenticated);
@@ -70,7 +73,7 @@ export default function HomePage() {
       setLoading(true);
       setRecommendations(null);
       try {
-        const data = await getHomeRecommendations(weatherCondition, mood, !isAuthenticated ? "ENFP" : undefined);
+        const data = await getHomeRecommendations(weatherCondition, selectedMood, !isAuthenticated ? "ENFP" : (selectedMbti ?? undefined));
         setRecommendations(data);
         setError(null);
       } catch (err) {
@@ -82,7 +85,7 @@ export default function HomePage() {
     };
 
     fetchRecommendations();
-  }, [weatherCondition, mood, isAuthenticated]);
+  }, [weatherCondition, selectedMood, selectedMbti, isAuthenticated]);
 
   const handleWeatherChange = (condition: WeatherType) => {
     setManualWeather(condition);
@@ -151,8 +154,8 @@ export default function HomePage() {
             onWeatherChange={handleWeatherChange}
             isManualWeather={isManualWeather}
             onResetWeather={resetToRealWeather}
-            mood={mood}
-            onMoodChange={setMood}
+            mood={selectedMood}
+            onMoodChange={setManualMood}
           />
         </div>
       ) : null}
