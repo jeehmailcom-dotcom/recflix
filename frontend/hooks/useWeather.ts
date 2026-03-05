@@ -209,6 +209,9 @@ export function useWeather(options: UseWeatherOptions = {}): UseWeatherReturn {
     setWeather(manualWeather);
     setIsManual(true);
     // 가상 날씨는 캐시하지 않음 (리셋 시 실시간 날씨로 복귀 위해)
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("recflix-weather-change", { detail: manualWeather }));
+    }
   }, []);
 
   const resetToRealWeather = useCallback(async () => {
@@ -225,6 +228,18 @@ export function useWeather(options: UseWeatherOptions = {}): UseWeatherReturn {
       fetchWeather();
     }
   }, [autoFetch, fetchWeather]);
+
+  // 다른 useWeather 인스턴스의 setManualWeather 호출에 반응
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (e: Event) => {
+      const w = (e as CustomEvent<Weather>).detail;
+      setWeather(w);
+      setIsManual(true);
+    };
+    window.addEventListener("recflix-weather-change", handler);
+    return () => window.removeEventListener("recflix-weather-change", handler);
+  }, []);
 
   return {
     weather,

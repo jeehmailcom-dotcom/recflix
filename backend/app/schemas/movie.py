@@ -81,6 +81,7 @@ class MovieDetail(MovieBase):
     cast_members: List[PersonResponse] = []
     keywords: List[str] = []
     countries: List[str] = []
+    trailer_key: Optional[str] = None
     mbti_scores: Optional[Dict[str, float]] = None
     weather_scores: Optional[Dict[str, float]] = None
     emotion_tags: Optional[Dict[str, float]] = None
@@ -116,6 +117,7 @@ class MovieDetail(MovieBase):
             cast_members=[PersonResponse.model_validate(p) for p in movie.cast_members[:10]],
             keywords=[k.name for k in movie.keywords],
             countries=[c.name for c in movie.countries],
+            trailer_key=movie.trailer_key,
             mbti_scores=movie.mbti_scores,
             weather_scores=movie.weather_scores,
             emotion_tags=movie.emotion_tags

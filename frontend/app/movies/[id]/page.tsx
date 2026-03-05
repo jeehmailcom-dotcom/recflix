@@ -77,13 +77,13 @@ export default function MovieDetailPage() {
     }
   };
 
-  const handleRatingClick = async (score: number) => {
+  const handleRatingClick = async (score: number, weatherContext?: string) => {
     if (!isAuthenticated) {
       router.push("/login");
       return;
     }
     try {
-      await setRating(movieId, score);
+      await setRating(movieId, score, weatherContext);
     } catch (error) {
       console.error("Failed to set rating:", error);
     }
@@ -119,6 +119,9 @@ export default function MovieDetailPage() {
         catchphraseLoading={catchphraseLoading}
         isFavorited={interaction?.is_favorited ?? false}
         onFavoriteClick={handleFavoriteClick}
+        userRating={interaction?.rating ?? 0}
+        isAuthenticated={isAuthenticated}
+        onRatingClick={handleRatingClick}
       />
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
@@ -126,9 +129,6 @@ export default function MovieDetailPage() {
             movie={movie}
             similar={similar}
             overview={overview}
-            userRating={interaction?.rating ?? 0}
-            isAuthenticated={isAuthenticated}
-            onRatingClick={handleRatingClick}
           />
           <MovieDetailSidebar movie={movie} />
         </div>

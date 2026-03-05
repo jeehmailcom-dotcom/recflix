@@ -78,6 +78,8 @@ class Movie(Base):
     release_season = Column(String(10))           # 봄/여름/가을/겨울
     weighted_score = Column(Float, default=0.0)   # Pre-calculated weighted score
 
+    trailer_key = Column(String(100))                # YouTube trailer key
+
     # Recommendation scores (JSONB)
     mbti_scores = Column(JSONB, default={})      # {"INTJ": 0.8, "ENFP": 0.6, ...}
     weather_scores = Column(JSONB, default={})   # {"sunny": 0.7, "rainy": 0.9, ...}

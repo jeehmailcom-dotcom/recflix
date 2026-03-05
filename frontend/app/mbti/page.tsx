@@ -68,7 +68,7 @@ export default function MBTIPage() {
 
     fetch();
     return () => { cancelled = true; };
-  }, [weatherCondition, isAuthenticated]); // selectedMBTI 제외: handleMBTISelect에서 관리
+  }, [weatherCondition, isAuthenticated, selectedMBTI]);
 
   const handleMBTISelect = async (mbti: MBTIType) => {
     setSelectedMBTI(mbti);
@@ -136,7 +136,7 @@ export default function MBTIPage() {
                 disabled={saving}
                 className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border transition-all duration-200 ${
                   isSelected
-                    ? "bg-primary-500 border-primary-500 text-white scale-105 shadow-lg"
+                    ? "bg-amber-400 border-amber-400 text-white scale-105 shadow-lg"
                     : "bg-white border-gray-200 hover:border-secondary-300 hover:bg-secondary-50 text-foreground/70"
                 }`}
               >
@@ -179,7 +179,7 @@ export default function MBTIPage() {
                   row.title.startsWith("🔥") ||
                   row.title.startsWith("⭐")
                 )
-              : recommendations.rows
+              : recommendations.rows.filter(row => !row.title.startsWith("🌅"))
             ).map((row, i) => (
               <MovieRow
                 key={`${row.title}-${i}`}

@@ -185,7 +185,7 @@ export default function HomePage() {
         )}
 
         {/* Regular Recommendation Rows */}
-        {recommendations?.rows.filter(row => !row.title.startsWith("🔀") && !row.title.startsWith("🎭")).map((row, index) => {
+        {recommendations?.rows.filter(row => !row.title.startsWith("🔀") && (!isAuthenticated || !row.title.startsWith("🎭")) && (isAuthenticated || !row.title.startsWith("🌅"))).map((row, index) => {
           const title =
             !isAuthenticated && row.title.startsWith("💫") ? "💫 지금 기분 추천" :
             !isAuthenticated && row.title.startsWith("🌤️") ? "🌤️ 지금 날씨 추천" :

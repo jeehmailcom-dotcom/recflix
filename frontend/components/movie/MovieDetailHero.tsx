@@ -1,12 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Star, Heart, Clock, Calendar, ArrowLeft, Play } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Star, Heart, Clock, Calendar, ArrowLeft } from "lucide-react";
 import { getImageUrl, formatRuntime, formatDate } from "@/lib/utils";
-import type { MovieDetail } from "@/types";
+import { useWeather } from "@/hooks/useWeather";
+import type { MovieDetail, WeatherType, MoodType } from "@/types";
+
+const WEATHER_OPTIONS: { value: WeatherType; label: string }[] = [
+  { value: "sunny",  label: "☀️맑음" },
+  { value: "rainy",  label: "🌧비" },
+  { value: "cloudy", label: "☁️흐림" },
+  { value: "snowy",  label: "🌨눈" },
+];
+
+const MOOD_OPTIONS: { value: MoodType; label: string }[] = [
+  { value: "comfortable", label: "😌편안한" },
+  { value: "tense",       label: "😨긴장감" },
+  { value: "exciting",    label: "😆신나는" },
+  { value: "emotional",   label: "❤️감성적" },
+  { value: "fantasy",     label: "🚀상상에빠지고싶은" },
+  { value: "light",       label: "😄가볍게" },
+];
 
 interface MovieDetailHeroProps {
   movie: MovieDetail;
@@ -15,6 +33,9 @@ interface MovieDetailHeroProps {
   catchphraseLoading: boolean;
   isFavorited: boolean;
   onFavoriteClick: () => void;
+  userRating: number;
+  isAuthenticated: boolean;
+  onRatingClick: (score: number, weatherContext?: string) => void;
 }
 
 export default function MovieDetailHero({
@@ -24,8 +45,48 @@ export default function MovieDetailHero({
   catchphraseLoading,
   isFavorited,
   onFavoriteClick,
+  userRating,
+  isAuthenticated,
+  onRatingClick,
 }: MovieDetailHeroProps) {
   const router = useRouter();
+  const [ratingHover, setRatingHover] = useState(0);
+  const [pendingScore, setPendingScore] = useState<number | null>(null);
+  const [contextOpen, setContextOpen] = useState(false);
+  const [selectedWeather, setSelectedWeather] = useState<WeatherType>("sunny");
+  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
+
+  const { weather } = useWeather({ autoFetch: true });
+
+  const displayRating = ratingHover || pendingScore || userRating;
+
+  const handleStarClick = (score: number) => {
+    if (!isAuthenticated) {
+      onRatingClick(score);
+      return;
+    }
+    setPendingScore(score);
+    setSelectedWeather(weather?.condition ?? "sunny");
+    setSelectedMood(null);
+    setContextOpen(true);
+  };
+
+  const handleSave = () => {
+    if (pendingScore === null) return;
+    const context = selectedMood
+      ? `${selectedWeather}:${selectedMood}`
+      : selectedWeather;
+    onRatingClick(pendingScore, context);
+    setContextOpen(false);
+    setPendingScore(null);
+  };
+
+  const handleSkip = () => {
+    if (pendingScore === null) return;
+    onRatingClick(pendingScore);
+    setContextOpen(false);
+    setPendingScore(null);
+  };
 
   return (
     <div className="relative h-[60vh] md:h-[70vh]">
@@ -58,8 +119,8 @@ export default function MovieDetailHero({
       </motion.button>
 
       {/* Hero Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-8">
+      <div className="absolute bottom-0 left-0 right-0 py-4 md:py-8 lg:py-12">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 flex flex-col md:flex-row gap-4 md:gap-8">
           {/* Mobile Poster */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -167,7 +228,7 @@ export default function MovieDetailHero({
                   <Link
                     key={genreName || index}
                     href={`/movies?genre=${encodeURIComponent(genreName)}`}
-                    className="px-2 md:px-3 py-1 bg-foreground/10 hover:bg-foreground/20 rounded-full text-xs md:text-sm text-foreground/80 transition"
+                    className="px-2 md:px-3 py-1 bg-[#DA7756] hover:bg-[#c4654a] rounded-full text-xs md:text-sm text-white transition"
                   >
                     {genreName}
                   </Link>
@@ -176,11 +237,7 @@ export default function MovieDetailHero({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-2 md:gap-3">
-              <button className="flex items-center space-x-1.5 md:space-x-2 px-4 md:px-6 py-2.5 md:py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-medium rounded-lg transition text-sm md:text-base">
-                <Play className="w-4 h-4 md:w-5 md:h-5 fill-white" />
-                <span>시청하기</span>
-              </button>
+            <div className="flex flex-col items-start gap-2 md:gap-3">
               <button
                 onClick={onFavoriteClick}
                 className={`flex items-center space-x-1.5 md:space-x-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium transition text-sm md:text-base ${
@@ -192,7 +249,105 @@ export default function MovieDetailHero({
                 <Heart className={`w-4 h-4 md:w-5 md:h-5 ${isFavorited ? "fill-current" : ""}`} />
                 <span>{isFavorited ? "찜 완료" : "찜하기"}</span>
               </button>
+
+              {/* Star Rating */}
+              <div className="flex items-center gap-1 px-4 md:px-6 py-2.5 md:py-3 bg-foreground/10 hover:bg-foreground/20 rounded-lg transition text-sm md:text-base">
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <button
+                    key={score}
+                    onClick={() => handleStarClick(score)}
+                    onMouseEnter={() => setRatingHover(score)}
+                    onMouseLeave={() => setRatingHover(0)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${
+                        score <= displayRating
+                          ? "text-[#DA7756] fill-[#DA7756]"
+                          : "text-foreground/30"
+                      }`}
+                    />
+                  </button>
+                ))}
+                {userRating > 0 && !contextOpen && (
+                  <span className="ml-2 font-medium text-[#DA7756]">
+                    {userRating.toFixed(1)}
+                  </span>
+                )}
+                {!isAuthenticated && (
+                  <Link href="/login" className="ml-2 text-foreground/60 text-sm hover:text-foreground">
+                    로그인
+                  </Link>
+                )}
+              </div>
             </div>
+
+            {/* Context Panel */}
+            <AnimatePresence>
+              {contextOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-4 pt-4 border-t border-foreground/20 space-y-3">
+                    <p className="text-sm text-foreground/60">이 영화를 본 날의 날씨와 기분을 기록해보세요</p>
+                    <div>
+                      <p className="text-xs font-medium text-foreground/50 mb-2">날씨</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {WEATHER_OPTIONS.map(({ value, label }) => (
+                          <button
+                            key={value}
+                            onClick={() => setSelectedWeather(value)}
+                            className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
+                              selectedWeather === value
+                                ? "bg-primary-500 border-primary-500 text-white"
+                                : "bg-foreground/10 border-foreground/20 text-foreground/70 hover:border-primary-300"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-foreground/50 mb-2">기분</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {MOOD_OPTIONS.map(({ value, label }) => (
+                          <button
+                            key={value}
+                            onClick={() => setSelectedMood(value)}
+                            className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
+                              selectedMood === value
+                                ? "bg-secondary-500 border-secondary-500 text-white"
+                                : "bg-foreground/10 border-foreground/20 text-foreground/70 hover:border-secondary-300"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={handleSave}
+                        className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm rounded-lg transition"
+                      >
+                        저장하기
+                      </button>
+                      <button
+                        onClick={handleSkip}
+                        className="px-4 py-2 bg-foreground/10 hover:bg-foreground/20 text-foreground/60 text-sm rounded-lg transition"
+                      >
+                        건너뛰기
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </div>

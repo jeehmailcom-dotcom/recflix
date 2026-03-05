@@ -10,7 +10,7 @@ interface InteractionState {
   fetchInteraction: (movieId: number) => Promise<api.MovieInteraction | null>;
   fetchInteractions: (movieIds: number[]) => Promise<void>;
   toggleFavorite: (movieId: number) => Promise<boolean>;
-  setRating: (movieId: number, score: number) => Promise<void>;
+  setRating: (movieId: number, score: number, weatherContext?: string) => Promise<void>;
   clearInteraction: (movieId: number) => void;
   clearAll: () => void;  // 로그아웃 시 전체 초기화
 }
@@ -115,7 +115,7 @@ export const useInteractionStore = create<InteractionState>()((set, get) => ({
     }
   },
 
-  setRating: async (movieId: number, score: number) => {
+  setRating: async (movieId: number, score: number, weatherContext?: string) => {
     const current = get().interactions[movieId];
 
     // Optimistic update
@@ -132,7 +132,7 @@ export const useInteractionStore = create<InteractionState>()((set, get) => ({
     }));
 
     try {
-      await api.rateMovie(movieId, score);
+      await api.rateMovie(movieId, score, weatherContext);
     } catch (error) {
       // Rollback on error
       set((state) => ({

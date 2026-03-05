@@ -18,11 +18,11 @@ interface HybridMovieCardProps {
 function RecommendationTagBadge({ tag }: { tag: RecommendationTag }) {
   console.log("[TagBadge] tag.type:", tag.type, "| tag.label:", tag.label);
   const colorClass =
-    tag.type === "mbti"     ? "bg-primary-500 text-white" :
+    tag.type === "mbti"     ? "bg-amber-400 text-white" :
     tag.type === "weather"  ? "bg-secondary-500 text-white" :
     tag.type === "mood"     ? "bg-emerald-500 text-white" :
     tag.type === "personal" ? "bg-secondary-400 text-white" :
-    tag.type === "rating"   ? "bg-yellow-500 text-white" :
+    tag.type === "rating"   ? "bg-red-500 text-white" :
     tag.type === "popular"  ? "bg-orange-500 text-white" :
                               "bg-gray-400 text-white";
 

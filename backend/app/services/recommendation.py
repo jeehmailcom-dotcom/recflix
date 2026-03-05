@@ -552,8 +552,8 @@ def build_home_recommendations(
     if current_user:
         rows = [r for r in [weather_mood_row, mbti_row, opposite_mbti_row, weather_row, mood_row] if r] + [popular_row, top_rated_row]
     elif mbti_override:
-        # 비로그인 + mbti_override: 기분→날씨→날씨+기분→MBTI→정반대MBTI→인기→평점 순
-        rows = [r for r in [mood_row, weather_row, weather_mood_row, mbti_row, opposite_mbti_row] if r] + [popular_row, top_rated_row]
+        # 비로그인 + mbti_override: 기분→날씨→MBTI→인기→평점 순
+        rows = [r for r in [mood_row, weather_row, mbti_row, opposite_mbti_row] if r] + [popular_row, top_rated_row]
     else:
         rows = [popular_row, top_rated_row] + [r for r in [weather_row, mood_row, weather_mood_row] if r] + [r for r in [opposite_mbti_row] if r]
 

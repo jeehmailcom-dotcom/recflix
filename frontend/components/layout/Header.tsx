@@ -1,22 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Search, Heart, Star, User, LogOut, Home, Brain, Cloud, Smile } from "lucide-react";
+import { Menu, X, Search, Heart, Star, User, LogOut, Home, Brain, Cloud, Smile, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { WeatherIndicator } from "@/components/weather/WeatherBanner";
-import type { Weather } from "@/types";
+import { useWeather } from "@/hooks/useWeather";
+import type { WeatherType, MoodType } from "@/types";
+
+const weatherConfig: Record<WeatherType, { emoji: string; label: string }> = {
+  sunny:  { emoji: "☀️",  label: "맑음" },
+  rainy:  { emoji: "🌧️", label: "비"   },
+  cloudy: { emoji: "☁️",  label: "흐림" },
+  snowy:  { emoji: "❄️",  label: "눈"   },
+};
+
+const moodConfig: Record<MoodType, { emoji: string; label: string }> = {
+  comfortable: { emoji: "😌", label: "편안한" },
+  tense:       { emoji: "😰", label: "긴장된" },
+  exciting:    { emoji: "😆", label: "활기찬" },
+  emotional:   { emoji: "💕", label: "감성적" },
+  fantasy:     { emoji: "🔮", label: "상상에빠진" },
+  light:       { emoji: "😄", label: "유쾌한" },
+};
+
+const MOOD_ORDER: MoodType[] = ["comfortable", "tense", "exciting", "emotional", "fantasy", "light"];
+
+const MBTI_LIST = [
+  "INTJ", "INTP", "ENTJ", "ENTP",
+  "INFJ", "INFP", "ENFJ", "ENFP",
+  "ISTJ", "ISFJ", "ESTJ", "ESFJ",
+  "ISTP", "ISFP", "ESTP", "ESFP",
+];
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, fetchUser } = useAuthStore();
+
+  useEffect(() => {
+    console.log("[Header] isAuthenticated:", isAuthenticated, "| user:", user, "| user.mbti:", user?.mbti);
+  }, [isAuthenticated, user]);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [weather, setWeather] = useState<Weather | null>(null);
+  const [weatherDropdownOpen, setWeatherDropdownOpen] = useState(false);
+  const weatherDropdownRef = useRef<HTMLDivElement>(null);
+  const [moodDropdownOpen, setMoodDropdownOpen] = useState(false);
+  const moodDropdownRef = useRef<HTMLDivElement>(null);
+  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
+  const [mbtiDropdownOpen, setMbtiDropdownOpen] = useState(false);
+  const mbtiDropdownRef = useRef<HTMLDivElement>(null);
+  const [selectedMbti, setSelectedMbti] = useState<string | null>(null);
+
+  const { weather, setManualWeather, resetToRealWeather } = useWeather({ autoFetch: true });
+  const [geoGranted, setGeoGranted] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,29 +82,69 @@ export default function Header() {
     };
   }, [mobileMenuOpen]);
 
-  // Load cached weather from localStorage
+  // Check geolocation permission
   useEffect(() => {
-    const loadWeather = () => {
-      try {
-        const cached = localStorage.getItem("recflix_weather");
-        if (cached) {
-          const { data } = JSON.parse(cached);
-          setWeather(data);
-        }
-      } catch {
-        // Ignore errors
+    if (typeof navigator === "undefined" || !navigator.permissions) return;
+    navigator.permissions.query({ name: "geolocation" }).then((result) => {
+      setGeoGranted(result.state === "granted");
+      result.onchange = () => setGeoGranted(result.state === "granted");
+    }).catch(() => {});
+  }, []);
+
+  // Close weather dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (weatherDropdownRef.current && !weatherDropdownRef.current.contains(e.target as Node)) {
+        setWeatherDropdownOpen(false);
       }
     };
+    if (weatherDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [weatherDropdownOpen]);
 
-    loadWeather();
-    window.addEventListener("storage", loadWeather);
-    const interval = setInterval(loadWeather, 5000);
-
-    return () => {
-      window.removeEventListener("storage", loadWeather);
-      clearInterval(interval);
+  // Close mood dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moodDropdownRef.current && !moodDropdownRef.current.contains(e.target as Node)) {
+        setMoodDropdownOpen(false);
+      }
     };
-  }, []);
+    if (moodDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [moodDropdownOpen]);
+
+  // Close MBTI dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mbtiDropdownRef.current && !mbtiDropdownRef.current.contains(e.target as Node)) {
+        setMbtiDropdownOpen(false);
+      }
+    };
+    if (mbtiDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [mbtiDropdownOpen]);
+
+  const handleMbtiSelect = (mbti: string | null) => {
+    setSelectedMbti(mbti);
+    setMbtiDropdownOpen(false);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("recflix-mbti-change", { detail: mbti }));
+    }
+  };
+
+  const handleMoodSelect = (mood: MoodType | null) => {
+    setSelectedMood(mood);
+    setMoodDropdownOpen(false);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("recflix-mood-change", { detail: mood }));
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,12 +212,155 @@ export default function Header() {
 
             {/* Right Section */}
             <div className="flex items-center space-x-2 md:space-x-4">
-              {/* Weather - Desktop only */}
+              {/* MBTI Selector - Desktop only */}
+              <div ref={mbtiDropdownRef} className="relative hidden lg:block">
+                <button
+                  onClick={() => setMbtiDropdownOpen(!mbtiDropdownOpen)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-primary-200 hover:border-primary-400 text-sm transition"
+                >
+                  <span>🧠</span>
+                  <span className={`font-medium ${selectedMbti ? "text-amber-500" : "text-foreground/70"}`}>
+                    {selectedMbti ?? "MBTI"}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 text-foreground/40 transition-transform duration-200 ${mbtiDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {mbtiDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full mt-2 right-0 bg-white rounded-xl border border-gray-200 shadow-lg p-2 z-50"
+                    >
+                      <div className="grid grid-cols-4 gap-1 w-[200px]">
+                        {MBTI_LIST.map((mbti) => (
+                          <button
+                            key={mbti}
+                            onClick={() => handleMbtiSelect(mbti)}
+                            className={`px-2 py-1.5 rounded-lg text-xs font-medium transition ${
+                              (selectedMbti ?? (isAuthenticated && user?.mbti ? user.mbti : "ENFP")) === mbti
+                                ? "bg-amber-400/20 text-amber-600 font-semibold"
+                                : "text-foreground/70 hover:bg-gray-50"
+                            }`}
+                          >
+                            {mbti}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="border-t border-gray-100 mt-2 pt-1">
+                        <button
+                          onClick={() => handleMbtiSelect(isAuthenticated && user?.mbti ? user.mbti : "ENFP")}
+                          className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-xs transition text-foreground/70 hover:bg-gray-50"
+                        >
+                          <span>👤</span>
+                          <span>내 MBTI로 돌아가기</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Weather Selector - Desktop only */}
               {weather && (
-                <div className="hidden lg:block">
-                  <WeatherIndicator weather={weather} />
+                <div ref={weatherDropdownRef} className="relative hidden lg:block">
+                  <button
+                    onClick={() => setWeatherDropdownOpen(!weatherDropdownOpen)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-primary-200 hover:border-primary-400 text-sm transition"
+                  >
+                    <span>{weatherConfig[weather.condition].emoji}</span>
+                    <span className="text-foreground/70">{weather.temperature}°C</span>
+                    <ChevronDown className={`w-3 h-3 text-foreground/40 transition-transform duration-200 ${weatherDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {weatherDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full mt-2 right-0 bg-white rounded-xl border border-gray-200 shadow-lg p-1.5 w-32 z-50"
+                      >
+                        {(["sunny", "rainy", "cloudy", "snowy"] as WeatherType[]).map((w) => (
+                          <button
+                            key={w}
+                            onClick={() => { setManualWeather(w); setWeatherDropdownOpen(false); }}
+                            className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition ${
+                              weather.condition === w
+                                ? "bg-secondary-500/10 text-secondary-600 font-medium"
+                                : "text-foreground/70 hover:bg-gray-50"
+                            }`}
+                          >
+                            <span>{weatherConfig[w].emoji}</span>
+                            <span>{weatherConfig[w].label}</span>
+                          </button>
+                        ))}
+                        <div className="border-t border-gray-100 my-1" />
+                        <button
+                          onClick={() => {
+                            if (geoGranted) { resetToRealWeather(); } else { setManualWeather("sunny"); }
+                            setWeatherDropdownOpen(false);
+                          }}
+                          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition text-foreground/70 hover:bg-gray-50"
+                        >
+                          <span>📍</span>
+                          <span>현재 위치 날씨</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
+
+              {/* Mood Selector - Desktop only */}
+              <div ref={moodDropdownRef} className="relative hidden lg:block">
+                <button
+                  onClick={() => setMoodDropdownOpen(!moodDropdownOpen)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-primary-200 hover:border-primary-400 text-sm transition"
+                >
+                  <span>{selectedMood ? moodConfig[selectedMood].emoji : "😊"}</span>
+                  <span className="text-foreground/70">기분</span>
+                  <ChevronDown className={`w-3 h-3 text-foreground/40 transition-transform duration-200 ${moodDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {moodDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full mt-2 right-0 bg-white rounded-xl border border-gray-200 shadow-lg p-1.5 w-40 z-50"
+                    >
+                      {MOOD_ORDER.map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => handleMoodSelect(m)}
+                          className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition ${
+                            (selectedMood ?? "tense") === m
+                              ? "bg-emerald-500/10 text-emerald-700 font-medium"
+                              : "text-foreground/70 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span>{moodConfig[m].emoji}</span>
+                          <span>{moodConfig[m].label}</span>
+                        </button>
+                      ))}
+                      <div className="border-t border-gray-100 my-1" />
+                      <button
+                        onClick={() => handleMoodSelect(isAuthenticated && selectedMood ? selectedMood : "tense")}
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition text-foreground/70 hover:bg-gray-50"
+                      >
+                        <span>😊</span>
+                        <span>기분 초기화</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Search Button - Mobile */}
               <button

@@ -19,9 +19,12 @@ export interface MovieDetail extends Movie {
   overview_ko: string | null;
   tagline: string | null;
   overview_lang: string | null;
+  director: string | null;
+  director_ko: string | null;
   cast_members: Person[];
   keywords: string[];
   countries: string[];
+  trailer_key: string | null;
   mbti_scores: Record<string, number> | null;
   weather_scores: Record<string, number> | null;
   emotion_tags: Record<string, number> | null;
