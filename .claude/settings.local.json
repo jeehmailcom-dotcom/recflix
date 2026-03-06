@@ -125,7 +125,9 @@
       "Bash(py:*)",
       "Bash(PGPASSWORD=TVpthAGbJUrtDIadQIlrROhGeYMDAiWZ psql:*)",
       "Bash(ps -W)",
-      "Bash(do:*)"
+      "Bash(do:*)",
+      "Bash(git config:*)",
+      "Bash(git:*)"
     ]
   }
 }
